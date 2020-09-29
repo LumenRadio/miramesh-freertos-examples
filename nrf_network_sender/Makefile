@@ -1,4 +1,4 @@
-TARGET ?= nrf52832
+TARGET ?= nrf52840
 MIRA_LIB ?= $(CURDIR)/../../..
 SDK_ROOT ?= ../../../vendor/nrf5-sdk
 
@@ -50,8 +50,8 @@ SRC_FILES += \
   $(SDK_ROOT)/external/freertos/source/event_groups.c \
   $(SDK_ROOT)/external/freertos/source/portable/MemMang/heap_1.c \
   $(SDK_ROOT)/external/freertos/source/list.c \
-  $(PROJ_DIR)/sdk_files/port.c \
-  $(PROJ_DIR)/sdk_files/port_cmsis.c \
+  $(PROJ_DIR)/../nrf_common/sdk_files/port.c \
+  $(PROJ_DIR)/../nrf_common/sdk_files/port_cmsis.c \
   $(SDK_ROOT)/external/freertos/portable/CMSIS/nrf52/port_cmsis_systick.c \
   $(SDK_ROOT)/external/freertos/source/queue.c \
   $(SDK_ROOT)/external/freertos/source/stream_buffer.c \
@@ -82,10 +82,10 @@ SRC_FILES += \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
   $(SDK_ROOT)/components/libraries/experimental_section_vars/nrf_section_iter.c \
   $(PROJ_DIR)/main.c \
-  $(PROJ_DIR)/uart_output.c \
-  $(PROJ_DIR)/miramesh_integration/miramesh_events.c \
-  $(PROJ_DIR)/miramesh_integration/miramesh_task.c \
   $(PROJ_DIR)/network_sender_task.c \
+  $(PROJ_DIR)/../nrf_common/uart_output.c \
+  $(PROJ_DIR)/../nrf_common/miramesh_integration/miramesh_events.c \
+  $(PROJ_DIR)/../nrf_common/miramesh_integration/miramesh_task.c \
   $(SDK_ROOT)/components/libraries/uart/app_uart.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uart.c \
   $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
@@ -122,7 +122,8 @@ INC_FOLDERS += \
   $(SDK_ROOT)/external/fprintf \
   $(SDK_ROOT)/components/libraries/log/src \
   $(SDK_ROOT)/components/softdevice/common \
-  $(PROJ_DIR)/miramesh_integration \
+  $(PROJ_DIR)/../nrf_common/miramesh_integration \
+  $(PROJ_DIR)/../nrf_common/ \
   $(SDK_ROOT)/components/libraries/uart \
 
 # Libraries common to all targets

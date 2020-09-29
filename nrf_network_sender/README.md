@@ -51,7 +51,7 @@ to also support running without VFP.
 
 
 The integration parameters are configured in `config/MiraMeshConfig.h`
-and the code is in the `miramesh_integration` directory.
+and the code is in the `../nrf_common/miramesh_integration` directory.
 
 `network_sender_task.c` is the example application using MiraMesh, `main.c` is almost
 unchanged from the blinky_freertos example.
