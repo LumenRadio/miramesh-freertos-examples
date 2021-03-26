@@ -327,8 +327,8 @@ static void tick_callback(miracore_timer_time_t now, void *storage)
     current_tick_time = now;
     __DSB();
 
+    // Trigger SysTick Exception:
     SCB->ICSR = SCB_ICSR_PENDSTSET_Msk;
-    __SEV();
 }
 
 void xPortSysTickHandler( void )
