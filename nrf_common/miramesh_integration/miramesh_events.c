@@ -24,3 +24,9 @@ void SWI0_EGU0_IRQHandler(
 {
     miramesh_swi_irq_handler();
 }
+
+void SWI1_EGU1_IRQHandler(
+    void)
+{
+    miramesh_swi1_irq_handler();
+}
