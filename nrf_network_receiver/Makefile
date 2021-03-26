@@ -51,8 +51,8 @@ SRC_FILES += \
   $(SDK_ROOT)/external/freertos/source/event_groups.c \
   $(SDK_ROOT)/external/freertos/source/portable/MemMang/heap_1.c \
   $(SDK_ROOT)/external/freertos/source/list.c \
-  $(PROJ_DIR)/../nrf_common/sdk_files/port.c \
-  $(PROJ_DIR)/../nrf_common/sdk_files/port_cmsis.c \
+  $(SDK_ROOT)/external/freertos/portable/GCC/nrf52/port.c \
+  $(SDK_ROOT)/external/freertos/portable/CMSIS/nrf52/port_cmsis.c \
   $(PROJ_DIR)/../nrf_common/sdk_files/port_cmsis_systick.c \
   $(PROJ_DIR)/../nrf_common/sdk_files/app_timer_freertos.c \
   $(SDK_ROOT)/external/freertos/source/queue.c \
@@ -132,7 +132,7 @@ LIB_FILES += \
 	$(MIRA_LIB)/platform/$(TARGET)ble-net/libmira.a
 
 # Optimization flags
-OPT = -O3 -g3
+OPT = -g3
 # Uncomment the line below to enable link time optimization
 #OPT += -flto
 
