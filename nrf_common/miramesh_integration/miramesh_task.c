@@ -13,6 +13,7 @@
 #include "miramesh.h"
 #include "miramesh_sys.h"
 
+#define DEFINE_MIRAMESH_HARDWARE_CFG 1
 #include "MiraMeshConfig.h"
 
 #include "freertos_miramesh_integration.h"
