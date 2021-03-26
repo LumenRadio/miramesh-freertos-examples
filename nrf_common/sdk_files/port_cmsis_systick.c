@@ -319,6 +319,7 @@ void xPortSysTickHandler( void )
 #include <miramesh.h>
 
 static miracore_timer_time_t current_tick_time;
+static volatile miracore_timer_time_t previous_tick_time;
 
 static void tick_callback(miracore_timer_time_t now, void *storage)
 {
@@ -333,9 +334,14 @@ static void tick_callback(miracore_timer_time_t now, void *storage)
 
 void xPortSysTickHandler( void )
 {
-    SCB->ICSR = SCB_ICSR_PENDSTCLR_Msk;
-    miramesh_timer_schedule(miramesh_timer_time_add_us(current_tick_time,
-                            1000000/configTICK_RATE_HZ),
+    miracore_timer_time_t cyclesPerTick = miramesh_timer_time_add_us(0, 1000000 / configTICK_RATE_HZ);
+    int32_t diff = (current_tick_time - previous_tick_time) / cyclesPerTick;
+
+    if (diff <= 0) {
+        diff = 1;
+    }
+    
+    miramesh_timer_schedule(previous_tick_time + (diff + 1) * cyclesPerTick,
                             tick_callback,
                             NULL);
 
@@ -345,6 +351,13 @@ void xPortSysTickHandler( void )
     known. */
     ( void ) portSET_INTERRUPT_MASK_FROM_ISR();
     {
+#if configUSE_TICKLESS_IDLE == 1
+        if (diff > 1) {
+            vTaskStepTick(diff - 1);
+        }
+#endif
+        previous_tick_time = current_tick_time;
+
         /* Increment the RTOS tick. */
         if ( xTaskIncrementTick() != pdFALSE )
         {
@@ -354,6 +367,7 @@ void xPortSysTickHandler( void )
             __SEV();
         }
     }
+
     portCLEAR_INTERRUPT_MASK_FROM_ISR( 0 );
 }
 
@@ -363,16 +377,95 @@ void vPortSetupTimerInterrupt( void )
     NVIC_SetPriority(SysTick_IRQn, configKERNEL_INTERRUPT_PRIORITY);
     /* Turn off SysTick */
     SysTick->CTRL = 0;
+    previous_tick_time = miramesh_timer_get_time_now();
     /* Trigger SysTick exception */
     SCB->ICSR = SCB_ICSR_PENDSTSET_Msk;
 }
 
 #if configUSE_TICKLESS_IDLE == 1
 
-#error "Not yet implemented"
-
 void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
 {
+    miracore_timer_time_t cyclesPerTick = miramesh_timer_time_add_us(0, 1000000 / configTICK_RATE_HZ);
+
+    /* Make sure the SysTick reload value does not overflow the counter. */
+    if ( xExpectedIdleTime >= ((1 << 30) / cyclesPerTick) ) {
+        xExpectedIdleTime = ((1 << 30) / cyclesPerTick) - 1;
+    }
+
+    miracore_timer_time_t latest_time_copy = previous_tick_time;
+
+    miramesh_timer_schedule(previous_tick_time + xExpectedIdleTime * cyclesPerTick,
+                            tick_callback,
+                            NULL);
+
+    /* Block all the interrupts globally */
+    do {
+        uint8_t dummy = 0;
+        uint32_t err_code = sd_nvic_critical_region_enter(&dummy);
+        if (err_code != 0) {
+            APP_ERROR_CHECK(err_code);
+        }
+    } while (0);
+
+    miracore_timer_time_t enterTime = latest_time_copy;
+
+    if ( latest_time_copy != previous_tick_time )
+    {
+        miramesh_timer_schedule(previous_tick_time + cyclesPerTick,
+                                tick_callback,
+                                NULL);
+    }
+    else if ( eTaskConfirmSleepModeStatus() != eAbortSleep )
+    {
+        /* Sleep until something happens.  configPRE_SLEEP_PROCESSING() can
+         * set its parameter to 0 to indicate that its implementation contains
+         * its own wait for interrupt or wait for event instruction, and so wfi
+         * should not be executed again.  However, the original expected idle
+         * time variable must remain unmodified, so a copy is taken. */
+        TickType_t xModifiableIdleTime = xExpectedIdleTime;
+        // configPRE_SLEEP_PROCESSING( xModifiableIdleTime );
+        if ( xModifiableIdleTime > 0 )
+        {
+            if (nrf_sdh_is_enabled())
+            {
+                uint32_t err_code = sd_app_evt_wait();
+                APP_ERROR_CHECK(err_code);
+            }
+            else
+            {
+                /* No SD -  we would just block interrupts globally.
+                * BASEPRI cannot be used for that because it would prevent WFE from wake up.
+                */
+                do {
+                    __WFE();
+                } while (0 == (NVIC->ISPR[0] | NVIC->ISPR[1]));
+            }
+        }
+        configPOST_SLEEP_PROCESSING( xExpectedIdleTime );
+
+        /* Correct the system ticks */
+        {
+            miracore_timer_interval_t diff;
+            miracore_timer_time_t exitTime;
+
+            exitTime = miramesh_timer_get_time_now();
+            diff = (exitTime - enterTime) / cyclesPerTick;
+
+            if ((configUSE_TICKLESS_IDLE_SIMPLE_DEBUG) && (diff > xExpectedIdleTime))
+            {
+                diff = xExpectedIdleTime;
+            }
+
+            if (diff < xExpectedIdleTime)
+            {
+                miramesh_timer_schedule(previous_tick_time + cyclesPerTick * (diff + 1),
+                                        tick_callback,
+                                        NULL);
+            }
+        }
+    }
+    sd_nvic_critical_region_exit(0);
 }
 
 #endif
