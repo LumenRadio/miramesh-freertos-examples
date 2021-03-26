@@ -25,7 +25,9 @@ static void wake_miramesh_task_from_irq(
     void)
 {
     if (miramesh_task_handle != NULL) {
-        xTaskNotifyFromISR(miramesh_task_handle, 1, eSetBits, 0);
+        portBASE_TYPE switch_task = pdFALSE;
+        xTaskNotifyFromISR(miramesh_task_handle, 1, eSetBits, &switch_task);
+        portYIELD_FROM_ISR(switch_task);
     }
 }
 
@@ -80,6 +82,49 @@ static void *miramesh_malloc(
 static void miramesh_task(
     void *pvParameters)
 {
+    mira_mem_set_alloc_callback(miramesh_malloc, NULL);
+
+    printf("MiraMesh task started\r\n");
+
+    /* Signal that initialisation is over */
+    xSemaphoreGive(miramesh_integration_initialized);
+
+    do {
+        uint32_t val;
+        /* Wait for wakeup from the wake_miramesh_* functions */
+        if (xTaskNotifyWait(0, 1, &val, portMAX_DELAY) == pdPASS) {
+            if (val & 1) {
+                /* Run the MiraMesh tasks that need to run: */
+                miramesh_run_once();
+            }
+        }
+    } while (true);
+}
+
+void task_hook(
+    void *arg)
+{
+    (void) arg;
+}
+
+void freertos_miramesh_integration_init(
+    void)
+{
+    /* Create a semaphore to signal when the system is ready.
+     * It is created in the Taken state. */
+    miramesh_integration_initialized = xSemaphoreCreateBinary();
+
+    init_miramesh_lock();
+
+#if MIRAMESH_STARTS_SOFTDEVICE
+    nrf_sdh_freertos_init(task_hook, NULL);
+    ret_code_t err = nrf_sdh_enable_request();
+    if (err != NRF_SUCCESS) {
+        printf("Failed to start SD: %ld\n", err);
+        while (1);
+    }
+#endif
+
     const miramesh_hardware_cfg_t *hardware = MIRAMESH_HARDWARE_CFG;
 
     miramesh_config_t miramesh_config = {
@@ -97,6 +142,14 @@ static void miramesh_task(
         }
     };
     miramesh_config.hardware = *hardware;
+
+    if (!nrf_sdh_is_enabled()) {
+        printf("Softdevice must be enabled\n");
+        while (1)
+            ;
+    }
+
+    printf("MiraMesh init called\n");
     miramesh_init(
         &miramesh_config,
 #ifdef MIRAMESH_FRONTEND_CFG
@@ -105,41 +158,6 @@ static void miramesh_task(
         NULL
 #endif
     );
-
-    mira_mem_set_alloc_callback(miramesh_malloc, NULL);
-
-    printf("MiraMesh task started\r\n");
-
-    /* Signal that initialisation is over */
-    xSemaphoreGive(miramesh_integration_initialized);
-
-    do {
-        uint32_t val;
-        /* Wait for wakeup from the wake_miramesh_* functions */
-        if (xTaskNotifyWait(0, 1, &val, portMAX_DELAY) == pdPASS) {
-            if (val & 1) {
-                /* Run the MiraMesh tasks that need to run: */
-                miramesh_run_once();
-            }
-        }
-
-    } while (true);
-}
-
-static void task_hook(
-    void *arg)
-{
-    (void) arg;
-}
-
-void freertos_miramesh_integration_init(
-    void)
-{
-    /* Create a semaphore to signal when the system is ready.
-     * It is created in the Taken state. */
-    miramesh_integration_initialized = xSemaphoreCreateBinary();
-
-    init_miramesh_lock();
 
     portBASE_TYPE rc = xTaskCreate(miramesh_task,
         (const char *const) "MiraMesh",
@@ -151,14 +169,6 @@ void freertos_miramesh_integration_init(
         printf("xTaskCreate failed");
         while (1);
     }
-#if MIRAMESH_STARTS_SOFTDEVICE
-    nrf_sdh_freertos_init(task_hook, NULL);
-    ret_code_t err = nrf_sdh_enable_request();
-    if (err != NRF_SUCCESS) {
-        printf("Failed to start SD: %ld\n", err);
-        while (1);
-    }
-#endif
 }
 
 void freertos_miramesh_integration_wait_for_ready(

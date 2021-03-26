@@ -76,8 +76,10 @@ static void time_callback(
      * Using 1.28 seconds, to keep calculation fast, and therefore latency low
      */
     if (ledTaskHandle != NULL) {
+        portBASE_TYPE should_yield = pdFALSE;
         bsp_board_led_invert(BSP_BOARD_LED_2);
-        xTaskNotifyFromISR(ledTaskHandle, 1, eSetBits, 0);
+        xTaskNotifyFromISR(ledTaskHandle, 1, eSetBits, &should_yield);
+        portYIELD_FROM_ISR(should_yield);
     }
 
     /* Calculate next tick */
@@ -124,8 +126,6 @@ static void controller(
 
     mira_net_init(&net_config);
 
-    mira_net_time_schedule(0, time_callback, NULL);
-
     printf("Controller task started\r\n");
 
     /*
@@ -134,19 +134,29 @@ static void controller(
      */
     udp_connection = mira_net_udp_connect(NULL, 0, udp_listen_callback, NULL);
 
+    bool start_schedule = true;
     while (1) {
         mira_net_state_t net_state = mira_net_get_state();
 
         if (net_state != MIRA_NET_STATE_JOINED) {
+            start_schedule = true;
             printf(
                 "Waiting for network (state is %s)\n",
                 net_state == MIRA_NET_STATE_NOT_ASSOCIATED ? "not associated"
-                : net_state == MIRA_NET_STATE_ASSOCIATED ? "associated"
-                : net_state == MIRA_NET_STATE_JOINED ? "joined"
-                : "UNKNOWN"
-            );
+                : net_state == MIRA_NET_STATE_ASSOCIATED   ? "associated"
+                : net_state == MIRA_NET_STATE_JOINED       ? "joined"
+                                                            : "UNKNOWN");
             vTaskDelayMs(CHECK_NET_INTERVAL * 1000);
         } else {
+            if (start_schedule) {
+                if (mira_net_time_get_time((uint32_t *)&next_tick) == MIRA_SUCCESS) {
+                    start_schedule = false;
+                    mira_net_time_schedule(next_tick, time_callback, NULL);
+                } else {
+                    printf("ERROR: mira_net_time_get_time failed.\n");
+                }
+            }
+
             /* Try to retrieve the root address. */
             res = mira_net_get_root_address(&net_address);
 
@@ -156,13 +166,13 @@ static void controller(
                 vTaskDelayMs(CHECK_NET_INTERVAL * 1000);
             } else {
                 /*
-                 * Root address is successfully retrieved, send a message to the
-                 * root node on the given UDP Port.
-                 */
+                * Root address is successfully retrieved, send a message to the
+                * root node on the given UDP Port.
+                */
                 printf("Sending to address: %s\n",
-                    mira_net_toolkit_format_address(buffer, &net_address));
+                        mira_net_toolkit_format_address(buffer, &net_address));
                 mira_net_udp_send_to(udp_connection, &net_address, UDP_PORT,
-                    message, strlen(message));
+                                        message, strlen(message));
                 vTaskDelayMs(SEND_INTERVAL * 1000);
             }
         }
