@@ -186,3 +186,10 @@ void freertos_miramesh_integration_wait_for_ready(
     while (xSemaphoreGive(miramesh_integration_initialized) != pdTRUE)
         /* pass */;
 }
+
+#if configCHECK_FOR_STACK_OVERFLOW > 0
+void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
+{
+    printf("Stack overflow: %s\n", pcTaskName);
+}
+#endif
