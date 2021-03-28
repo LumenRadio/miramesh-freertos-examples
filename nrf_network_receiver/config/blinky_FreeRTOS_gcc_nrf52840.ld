@@ -6,13 +6,13 @@ GROUP(-lgcc -lc -lnosys)
 MEMORY
 {
   /* Reserve flash space for Softdevice and MBR: */
-  MBR_SD (rx)          : ORIGIN = 0x00000, LENGTH = 0x26000
-  FLASH (rx)           : ORIGIN = 0x26000, LENGTH = 0x58000
+  MBR_SD (rx)          : ORIGIN = 0x00000, LENGTH = 0x27000
+  FLASH (rx)           : ORIGIN = 0x27000, LENGTH = 0x57000
   /* Store the Certification in the same space as with MiraOS: */
   CERTIFICATE (r)      : ORIGIN = 0x000FF000, LENGTH = 0x1000
   /* Reserve RAM space for Softdevice and MBR: */
-  SOFTDEVRAM (rwx)     : ORIGIN = 0x20000000, LENGTH = 0x22b0
-  RAM (rwx)            : ORIGIN = 0x200022b0, LENGTH = 0x3dd50
+  SOFTDEVRAM (rwx)     : ORIGIN = 0x20000000, LENGTH = 0x2300
+  RAM (rwx)            : ORIGIN = 0x20002300, LENGTH = 0x3dd00
 }
 
 SECTIONS

@@ -11,8 +11,8 @@ MEMORY
   /* Store the Certification in the same space as with MiraOS: */
   CERTIFICATE (r)      : ORIGIN = 0x0007F000, LENGTH = 0x1000
   /* Reserve RAM space for Softdevice and MBR: */
-  SOFTDEVRAM (rwx)     : ORIGIN = 0x20000000, LENGTH = 0x22b0
-  RAM (rwx)            : ORIGIN = 0x200022b0, LENGTH = 0xdd50
+  SOFTDEVRAM (rwx)     : ORIGIN = 0x20000000, LENGTH = 0x22f0
+  RAM (rwx)            : ORIGIN = 0x200022f0, LENGTH = 0xdd10
 }
 
 SECTIONS

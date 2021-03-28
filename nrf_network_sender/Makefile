@@ -1,4 +1,4 @@
-TARGET ?= nrf52832
+TARGET ?= nrf52840
 MIRA_LIB ?= $(CURDIR)/../../..
 SDK_ROOT ?= ../../../vendor/nrf5-sdk
 
@@ -13,11 +13,12 @@ $(OUTPUT_DIRECTORY)/$(TARGET)_xxaa.out: \
 
 # Target specific settings:
 ifeq ($(TARGET),nrf52832)
-	SD_HEX ?= $(SDK_ROOT)/components/softdevice/s132/hex/s132_nrf52_6.1.1_softdevice.hex
+	SD_HEX ?= $(SDK_ROOT)/components/softdevice/s132/hex/s132_nrf52_7.2.0_softdevice.hex
 	SRC_FILES += \
 		$(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52.S \
 		$(SDK_ROOT)/modules/nrfx/mdk/system_nrf52.c
 	INC_FOLDERS += \
+		$(SDK_ROOT)/components/softdevice/s112/headers/nrf52 \
 		$(SDK_ROOT)/components/softdevice/s112/headers
 	CFLAGS += -DBOARD_PCA10040
 	CFLAGS += -DNRF52
@@ -28,13 +29,13 @@ ifeq ($(TARGET),nrf52832)
 	ASMFLAGS += -DNRF52832_XXAA
 	ASMFLAGS += -DNRF52_PAN_74
 else
-	SD_HEX ?= $(SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_6.1.1_softdevice.hex
+	SD_HEX ?= $(SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_7.2.0_softdevice.hex
 	SRC_FILES += \
 		$(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52840.S \
 		$(SDK_ROOT)/modules/nrfx/mdk/system_nrf52840.c
 	INC_FOLDERS += \
-		$(SDK_ROOT)/components/softdevice/s140/include \
-		$(SDK_ROOT)/components/softdevice/s112/headers
+		$(SDK_ROOT)/components/softdevice/s140/headers/nrf52 \
+		$(SDK_ROOT)/components/softdevice/s140/headers
 	CFLAGS += -DBOARD_PCA10056
 	CFLAGS += -DNRF52840_XXAA
 	ASMFLAGS += -DBOARD_PCA10056
@@ -50,9 +51,10 @@ SRC_FILES += \
   $(SDK_ROOT)/external/freertos/source/event_groups.c \
   $(SDK_ROOT)/external/freertos/source/portable/MemMang/heap_1.c \
   $(SDK_ROOT)/external/freertos/source/list.c \
-  $(PROJ_DIR)/sdk_files/port.c \
-  $(PROJ_DIR)/sdk_files/port_cmsis.c \
-  $(SDK_ROOT)/external/freertos/portable/CMSIS/nrf52/port_cmsis_systick.c \
+  $(PROJ_DIR)/../nrf_common/sdk_files/port.c \
+  $(PROJ_DIR)/../nrf_common/sdk_files/port_cmsis.c \
+  $(PROJ_DIR)/../nrf_common/sdk_files/port_cmsis_systick.c \
+  $(PROJ_DIR)/../nrf_common/sdk_files/app_timer_freertos.c \
   $(SDK_ROOT)/external/freertos/source/queue.c \
   $(SDK_ROOT)/external/freertos/source/stream_buffer.c \
   $(SDK_ROOT)/external/freertos/source/tasks.c \
@@ -61,7 +63,6 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/util/app_error.c \
   $(SDK_ROOT)/components/libraries/util/app_error_handler_gcc.c \
   $(SDK_ROOT)/components/libraries/util/app_error_weak.c \
-  $(SDK_ROOT)/components/libraries/timer/app_timer_freertos.c \
   $(SDK_ROOT)/components/libraries/util/app_util_platform.c \
   $(SDK_ROOT)/components/libraries/util/nrf_assert.c \
   $(SDK_ROOT)/components/libraries/atomic/nrf_atomic.c \
@@ -74,7 +75,7 @@ SRC_FILES += \
   $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_clock.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_clock.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
-  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_power_clock.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_power.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_ppi.c \
   $(SDK_ROOT)/components/libraries/bsp/bsp.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
@@ -82,10 +83,10 @@ SRC_FILES += \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
   $(SDK_ROOT)/components/libraries/experimental_section_vars/nrf_section_iter.c \
   $(PROJ_DIR)/main.c \
-  $(PROJ_DIR)/uart_output.c \
-  $(PROJ_DIR)/miramesh_integration/miramesh_events.c \
-  $(PROJ_DIR)/miramesh_integration/miramesh_task.c \
   $(PROJ_DIR)/network_sender_task.c \
+  $(PROJ_DIR)/../nrf_common/uart_output.c \
+  $(PROJ_DIR)/../nrf_common/miramesh_integration/miramesh_events.c \
+  $(PROJ_DIR)/../nrf_common/miramesh_integration/miramesh_task.c \
   $(SDK_ROOT)/components/libraries/uart/app_uart.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uart.c \
   $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
@@ -122,7 +123,8 @@ INC_FOLDERS += \
   $(SDK_ROOT)/external/fprintf \
   $(SDK_ROOT)/components/libraries/log/src \
   $(SDK_ROOT)/components/softdevice/common \
-  $(PROJ_DIR)/miramesh_integration \
+  $(PROJ_DIR)/../nrf_common/miramesh_integration \
+  $(PROJ_DIR)/../nrf_common/ \
   $(SDK_ROOT)/components/libraries/uart \
 
 # Libraries common to all targets
@@ -169,14 +171,14 @@ LDFLAGS += --specs=nano.specs
 
 # Soft or Hard FP ABI?
 # Mira 2.4.0 & 2.4.1 uses Soft FP ABI,
-CFLAGS += -mfloat-abi=soft
-ASMFLAGS += -mfloat-abi=soft
-LDFLAGS += -mfloat-abi=soft
-# CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
-# CFLAGS += -DFLOAT_ABI_HARD
-# ASMFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
-# ASMFLAGS += -DFLOAT_ABI_HARD
-# LDFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
+# CFLAGS += -mfloat-abi=soft
+# ASMFLAGS += -mfloat-abi=soft
+# LDFLAGS += -mfloat-abi=soft
+CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
+CFLAGS += -DFLOAT_ABI_HARD
+ASMFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
+ASMFLAGS += -DFLOAT_ABI_HARD
+LDFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
 $(TARGET)_xxaa: CFLAGS += -D__HEAP_SIZE=8192
 $(TARGET)_xxaa: CFLAGS += -D__STACK_SIZE=8192

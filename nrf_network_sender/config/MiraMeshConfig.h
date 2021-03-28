@@ -6,16 +6,20 @@
 /* The FreeRTOS MiraMesh task is running at priority */
 #define MIRAMESH_TASK_PRIO  (4)
 
+#define MIRAMESH_RTC_IRQn   1
+#define MIRAMESH_SWI_IRQn   0
+
 /* --------------------------------------- */
 /* Define the used hardware                */
 
+#if DEFINE_MIRAMESH_HARDWARE_CFG
 static const miramesh_hardware_cfg_t *miramesh_get_hardware_cfg(
     void)
 {
     static miramesh_hardware_cfg_t hardware_cfg = {
-        .rtc = 2,
+        .rtc = MIRAMESH_RTC_IRQn,
         .rtc_irq_prio = 6,
-        .swi = 0,
+        .swi = MIRAMESH_SWI_IRQn,
         .swi_irq_prio = 5
     };
 
@@ -34,6 +38,7 @@ static const miramesh_hardware_cfg_t *miramesh_get_hardware_cfg(
 }
 
 #define MIRAMESH_HARDWARE_CFG miramesh_get_hardware_cfg()
+#endif
 
 /* --------------------------------------- */
 /* Define the frontend if used             */

@@ -39,6 +39,7 @@
  */
 #define FREERTOS_USE_RTC      0 /**< Use real time clock for the system */
 #define FREERTOS_USE_SYSTICK  1 /**< Use SysTick timer for system */
+#define FREERTOS_USE_MIRAMESH 2 /**< Use miramesh timer for system */
 
 /*-----------------------------------------------------------
  * Application specific definitions.
@@ -52,7 +53,7 @@
  * See http://www.freertos.org/a00110.html.
  *----------------------------------------------------------*/
 
-#define configTICK_SOURCE FREERTOS_USE_RTC
+#define configTICK_SOURCE FREERTOS_USE_MIRAMESH
 
 #define configUSE_PREEMPTION 1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
@@ -61,7 +62,7 @@
 #define configCPU_CLOCK_HZ                                                        ( \
         SystemCoreClock)
 #define configTICK_RATE_HZ \
-    1024
+    1000
 #define configMAX_PRIORITIES                                                      (3)
 #define configMINIMAL_STACK_SIZE                                                  ( \
         60)
@@ -174,6 +175,10 @@ standard names - or at least those used in the unmodified vector table. */
 #elif (configTICK_SOURCE == FREERTOS_USE_RTC)
     #define configSYSTICK_CLOCK_HZ  (32768UL)
     #define xPortSysTickHandler     RTC1_IRQHandler
+#elif (configTICK_SOURCE == FREERTOS_USE_MIRAMESH)
+    // #define configSYSTICK_CLOCK_HZ  (32768UL)
+    #define configSYSTICK_CLOCK_HZ  (1000000UL)
+    #define xPortSysTickHandler     SysTick_Handler
 #else
     #error  Unsupported configTICK_SOURCE value
 #endif

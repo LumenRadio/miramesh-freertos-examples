@@ -30,7 +30,7 @@ static const mira_net_config_t net_config = {
         0x31, 0x32, 0x33, 0x34,
         0x41, 0x42, 0x43, 0x44
     },
-    .mode = MIRA_NET_MODE_ROOT,
+    .mode = MIRA_NET_MODE_FAST_STARTUP_ROOT,
     .rate = MIRA_NET_RATE_MID,
     .antenna = 0,
     .prefix = NULL /* default prefix */
@@ -70,18 +70,20 @@ static void time_callback(
 {
     (void) storage;
 
+    /* Calculate next tick */
+    next_tick = (tick & 0xffffff80) + 0x00000080;
+
     /*
      * Make pin blink every 1.28 seconds, assuming 10ms ticks
      *
      * Using 1.28 seconds, to keep calculation fast, and therefore latency low
      */
     if (ledTaskHandle != NULL) {
+        portBASE_TYPE yield = pdFALSE;
         bsp_board_led_invert(BSP_BOARD_LED_2);
-        xTaskNotifyFromISR(ledTaskHandle, 1, eSetBits, 0);
+        vTaskNotifyGiveFromISR(ledTaskHandle, &yield);
+        portYIELD_FROM_ISR(yield);
     }
-
-    /* Calculate next tick */
-    next_tick = (tick & 0xffffff80) + 0x00000080;
 }
 
 static void ledTask(
@@ -90,13 +92,9 @@ static void ledTask(
     (void) pvParameters;
 
     while (1) {
-        uint32_t val;
-        if (xTaskNotifyWait(0, 1, &val, portMAX_DELAY) == pdPASS) {
-            if (val & 1) {
-                /* Schedule next wakeup */
-                mira_net_time_schedule(next_tick, time_callback, NULL);
-            }
-        }
+        ulTaskNotifyTake(1, portMAX_DELAY);
+          /* Schedule next wakeup */
+          mira_net_time_schedule(next_tick, time_callback, NULL);
     }
 }
 
@@ -113,11 +111,13 @@ static void controller(
     /* Wait for MiraMesh integration to be ready */
     freertos_miramesh_integration_wait_for_ready();
 
-    vTaskDelayMs(1000); // Give miramesh time to start
-
     mira_net_init(&net_config);
 
-    mira_net_time_schedule(0, time_callback, NULL);
+    if (mira_net_time_get_time((uint32_t *) &next_tick) == MIRA_SUCCESS) {
+        xTaskNotify(ledTaskHandle, 1, eSetBits);
+    } else {
+        printf("ERROR: mira_net_time_get_time.\n");
+    }
 
     printf("Controller task started\r\n");
 
@@ -137,6 +137,15 @@ static void controller(
 void start_miramesh_app(
     void)
 {
+    if (pdPASS != xTaskCreate(ledTask,
+        (const char *const) "ledTask",
+        100,
+        NULL,
+        0,
+        &ledTaskHandle) ) {
+        // printf("xTaskCreate failed");
+    }
+
     /*
      * Create the controller task
      */
@@ -144,17 +153,9 @@ void start_miramesh_app(
         (const char *const) "Hello MiraMesh",
         256,
         NULL,
-        3,
+        7,
         &controllerTaskHandle) ) {
         // printf("xTaskCreate failed");
     }
 
-    if (pdPASS != xTaskCreate(ledTask,
-        (const char *const) "ledTask",
-        100,
-        NULL,
-        3,
-        &ledTaskHandle) ) {
-        // printf("xTaskCreate failed");
-    }
 }
