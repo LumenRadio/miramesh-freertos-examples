@@ -356,7 +356,9 @@ void SysTick_Handler( void )
             /* At most 1 step if scheduler is suspended - the xTaskIncrementTick
             * would return the tick state from the moment when suspend function was called. */
             if ((diff > 1) && (xTaskGetSchedulerState() != taskSCHEDULER_RUNNING)) {
+#if configUSE_TICKLESS_IDLE == 1
                 vTaskStepTick(diff - 1);
+#endif
                 diff = 1;
             }
             while ((diff--) > 0) {
@@ -407,7 +409,7 @@ void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
                             NULL);
 
     /* Block all the interrupts globally */
-#if SOFTDEVICE_PRESENT
+#if 0 && SOFTDEVICE_PRESENT
     uint8_t prev_prio = 0;
     uint32_t err_code = sd_nvic_critical_region_enter(&prev_prio);
     APP_ERROR_CHECK(err_code);
@@ -429,7 +431,7 @@ void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
         TickType_t xModifiableIdleTime = xExpectedIdleTime;
         configPRE_SLEEP_PROCESSING( xModifiableIdleTime );
         if ( xModifiableIdleTime > 0 ) {
-#if SOFTDEVICE_PRESENT
+#if 0 && SOFTDEVICE_PRESENT
             if (nrf_sdh_is_enabled())
             {
                 uint32_t err_code = sd_app_evt_wait();
@@ -467,7 +469,7 @@ void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
             }
         }
     }
-#if SOFTDEVICE_PRESENT
+#if 0 && SOFTDEVICE_PRESENT
     err_code = sd_nvic_critical_region_exit(prev_prio);
     APP_ERROR_CHECK(err_code);
 #else
