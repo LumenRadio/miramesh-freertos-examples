@@ -4,7 +4,7 @@ An example of using MiraMesh with FreeRTOS.
 This is a combination of Nordic Semiconductor's SDK's blinky_freertos example,
 MiraOS' blink_sync_client and network_sender example.
 
-Nordic Semiconductor's nRF52 SDK 15.2.0 and Mira, version 2.4.0 or later is needed
+Nordic Semiconductor's nRF52 SDK 17.0.2 and Mira, version 2.6.0 or later is needed
 to build the example.
 
 ## How to build, flash and run
@@ -43,12 +43,6 @@ them to its serial port.
 * The UART output busywaits for each character to be written.
 
 ## Overview
-
-Mira version 2.4.0 and 2.4.1 doesn't use the VFP ABI, that is,
-it doesn't use the hardware floating point ABI. Nordics' FreeRTOS port
-in the SDK requires VFP, so `port.c` and `port_cmsis.c` have been modified
-to also support running without VFP.
-
 
 The integration parameters are configured in `config/MiraMeshConfig.h`
 and the code is in the `../nrf_common/miramesh_integration` directory.
