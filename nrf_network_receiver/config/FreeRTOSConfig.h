@@ -57,15 +57,15 @@
 
 #define configUSE_PREEMPTION 1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
-#define configUSE_TICKLESS_IDLE 0
-#define configUSE_TICKLESS_IDLE_SIMPLE_DEBUG                                      1 /* See into vPortSuppressTicksAndSleep source code for explanation */
+#define configUSE_TICKLESS_IDLE 1
+#define configUSE_TICKLESS_IDLE_SIMPLE_DEBUG                                      0 /* See into vPortSuppressTicksAndSleep source code for explanation */
 #define configCPU_CLOCK_HZ                                                        ( \
         SystemCoreClock)
 #define configTICK_RATE_HZ \
     1000
 #define configMAX_PRIORITIES                                                      (3)
 #define configMINIMAL_STACK_SIZE                                                  ( \
-        60)
+        200) // XXX This was 60
 #define configTOTAL_HEAP_SIZE                                                     ( \
         23 * 1024)
 #define configMAX_TASK_NAME_LEN                                                   (4)
@@ -84,7 +84,7 @@
 /* Hook function related definitions. */
 #define configUSE_IDLE_HOOK                                                       0
 #define configUSE_TICK_HOOK                                                       0
-#define configCHECK_FOR_STACK_OVERFLOW                                            0
+#define configCHECK_FOR_STACK_OVERFLOW                                            2
 #define configUSE_MALLOC_FAILED_HOOK                                              0
 
 /* Run time and task stats gathering related definitions. */
@@ -177,7 +177,7 @@ standard names - or at least those used in the unmodified vector table. */
     #define xPortSysTickHandler     RTC1_IRQHandler
 #elif (configTICK_SOURCE == FREERTOS_USE_MIRAMESH)
     // #define configSYSTICK_CLOCK_HZ  (32768UL)
-    #define configSYSTICK_CLOCK_HZ  (1000000UL)
+    #define configSYSTICK_CLOCK_HZ  (1000UL)
     #define xPortSysTickHandler     SysTick_Handler
 #else
     #error  Unsupported configTICK_SOURCE value

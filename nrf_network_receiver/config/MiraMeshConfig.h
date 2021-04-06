@@ -6,7 +6,7 @@
 /* The FreeRTOS MiraMesh task is running at priority */
 #define MIRAMESH_TASK_PRIO  (4)
 
-#define MIRAMESH_RTC_IRQn   1
+#define MIRAMESH_RTC_IRQn   2
 #define MIRAMESH_SWI_IRQn   0
 
 /* --------------------------------------- */

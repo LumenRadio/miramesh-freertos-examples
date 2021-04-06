@@ -319,6 +319,7 @@ void xPortSysTickHandler( void )
 #include <miramesh.h>
 
 static miracore_timer_time_t current_tick_time;
+static volatile miracore_timer_time_t previous_tick_time;
 
 static void tick_callback(miracore_timer_time_t now, void *storage)
 {
@@ -329,32 +330,54 @@ static void tick_callback(miracore_timer_time_t now, void *storage)
 
     // Trigger SysTick Exception:
     SCB->ICSR = SCB_ICSR_PENDSTSET_Msk;
+    __SEV();
 }
 
-void xPortSysTickHandler( void )
+// void xPortSysTickHandler( void )
+void SysTick_Handler( void )
 {
-    SCB->ICSR = SCB_ICSR_PENDSTCLR_Msk;
-    miramesh_timer_schedule(miramesh_timer_time_add_us(current_tick_time,
-                            1000000/configTICK_RATE_HZ),
+    miracore_timer_time_t now = current_tick_time;
+    miracore_timer_time_t cyclesPerTick = miramesh_timer_time_add_us(0, 1000000 / configTICK_RATE_HZ);
+    int32_t diff = (now - previous_tick_time) / cyclesPerTick;
+
+    miramesh_timer_schedule(previous_tick_time + (diff + 1) * cyclesPerTick,
                             tick_callback,
                             NULL);
 
-    /* The SysTick runs at the lowest interrupt priority, so when this interrupt
-    executes all interrupts must be unmasked.  There is therefore no need to
-    save and then restore the interrupt mask value as its value is already
-    known. */
-    ( void ) portSET_INTERRUPT_MASK_FROM_ISR();
-    {
-        /* Increment the RTOS tick. */
-        if ( xTaskIncrementTick() != pdFALSE )
-        {
+    if (diff > 0) {
+        /* The SysTick runs at the lowest interrupt priority, so when this interrupt
+        executes all interrupts must be unmasked.  There is therefore no need to
+        save and then restore the interrupt mask value as its value is already
+        known. */
+        BaseType_t switch_req = pdFALSE;
+        uint32_t nested = portSET_INTERRUPT_MASK_FROM_ISR();
+        previous_tick_time = now;
+        if (configUSE_DISABLE_TICK_AUTO_CORRECTION_DEBUG == 0) {
+            /* At most 1 step if scheduler is suspended - the xTaskIncrementTick
+            * would return the tick state from the moment when suspend function was called. */
+            if ((diff > 1) && (xTaskGetSchedulerState() != taskSCHEDULER_RUNNING)) {
+#if configUSE_TICKLESS_IDLE == 1
+                vTaskStepTick(diff - 1);
+#endif
+                diff = 1;
+            }
+            while ((diff--) > 0) {
+                switch_req |= xTaskIncrementTick();
+            }
+        } else {
+            switch_req = xTaskIncrementTick();
+        }
+
+        /* Increment the RTOS tick as usual which checks if there is a need for rescheduling */
+        if ( switch_req != pdFALSE ) {
             /* A context switch is required.  Context switching is performed in
             the PendSV interrupt.  Pend the PendSV interrupt. */
             SCB->ICSR = SCB_ICSR_PENDSVSET_Msk;
             __SEV();
         }
+
+        portCLEAR_INTERRUPT_MASK_FROM_ISR( nested );
     }
-    portCLEAR_INTERRUPT_MASK_FROM_ISR( 0 );
 }
 
 void vPortSetupTimerInterrupt( void )
@@ -363,21 +386,99 @@ void vPortSetupTimerInterrupt( void )
     NVIC_SetPriority(SysTick_IRQn, configKERNEL_INTERRUPT_PRIORITY);
     /* Turn off SysTick */
     SysTick->CTRL = 0;
+    previous_tick_time = miramesh_timer_get_time_now();
     /* Trigger SysTick exception */
     SCB->ICSR = SCB_ICSR_PENDSTSET_Msk;
 }
 
 #if configUSE_TICKLESS_IDLE == 1
 
-#error "Not yet implemented"
-
 void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
 {
+    const miracore_timer_time_t cyclesPerTick = miramesh_timer_time_add_us(0, 1000000 / configTICK_RATE_HZ);
+
+    /* Make sure the SysTick reload value does not overflow the counter. */
+    if ( xExpectedIdleTime >= ((1 << 30) / cyclesPerTick) ) {
+        xExpectedIdleTime = ((1 << 30) / cyclesPerTick) - 1;
+    }
+
+    miracore_timer_time_t enterTime = previous_tick_time;
+
+    miramesh_timer_schedule(enterTime + xExpectedIdleTime * cyclesPerTick,
+                            tick_callback,
+                            NULL);
+
+    /* Block all the interrupts globally */
+#if 0 && SOFTDEVICE_PRESENT
+    uint8_t prev_prio = 0;
+    uint32_t err_code = sd_nvic_critical_region_enter(&prev_prio);
+    APP_ERROR_CHECK(err_code);
+#else
+    __disable_irq();
+#endif
+
+    miracore_timer_interval_t diff = 0;
+    if ( enterTime != previous_tick_time ) {
+        miramesh_timer_schedule(previous_tick_time + cyclesPerTick,
+                                tick_callback,
+                                NULL);
+    } else if ( eTaskConfirmSleepModeStatus() != eAbortSleep ) {
+        /* Sleep until something happens.  configPRE_SLEEP_PROCESSING() can
+         * set its parameter to 0 to indicate that its implementation contains
+         * its own wait for interrupt or wait for event instruction, and so wfi
+         * should not be executed again.  However, the original expected idle
+         * time variable must remain unmodified, so a copy is taken. */
+        TickType_t xModifiableIdleTime = xExpectedIdleTime;
+        configPRE_SLEEP_PROCESSING( xModifiableIdleTime );
+        if ( xModifiableIdleTime > 0 ) {
+#if 0 && SOFTDEVICE_PRESENT
+            if (nrf_sdh_is_enabled())
+            {
+                uint32_t err_code = sd_app_evt_wait();
+                APP_ERROR_CHECK(err_code);
+            }
+            else
+#endif
+            {
+                /* No SD -  we would just block interrupts globally.
+                * BASEPRI cannot be used for that because it would prevent WFE from wake up.
+                */
+                do {
+                    __WFE();
+                } while (0 == (NVIC->ISPR[0] | NVIC->ISPR[1]));
+            }
+        }
+        configPOST_SLEEP_PROCESSING( xExpectedIdleTime );
+
+        /* Correct the system ticks */
+        {
+            miracore_timer_time_t exitTime = miramesh_timer_get_time_now();
+            diff = exitTime - enterTime;
+            diff /= cyclesPerTick;
+
+            if ((configUSE_TICKLESS_IDLE_SIMPLE_DEBUG) && (diff > xExpectedIdleTime))
+            {
+                diff = xExpectedIdleTime;
+            }
+
+            if (diff < xExpectedIdleTime)
+            {
+                miramesh_timer_schedule(previous_tick_time + cyclesPerTick * (diff + 1),
+                                        tick_callback,
+                                        NULL);
+            }
+        }
+    }
+#if 0 && SOFTDEVICE_PRESENT
+    err_code = sd_nvic_critical_region_exit(prev_prio);
+    APP_ERROR_CHECK(err_code);
+#else
+    __enable_irq();
+#endif
 }
 
 #endif
 
 #else
-
     #error  Unsupported configTICK_SOURCE value
 #endif // configTICK_SOURCE == FREERTOS_USE_SYSTICK
