@@ -30,7 +30,7 @@ static const mira_net_config_t net_config = {
         0x31, 0x32, 0x33, 0x34,
         0x41, 0x42, 0x43, 0x44
     },
-    .mode = MIRA_NET_MODE_FAST_STARTUP_ROOT,
+    .mode = MIRA_NET_MODE_ROOT_NO_RECONNECT,
     .rate = MIRA_NET_RATE_MID,
     .antenna = 0,
     .prefix = NULL /* default prefix */
