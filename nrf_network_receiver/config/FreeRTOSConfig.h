@@ -68,7 +68,7 @@
         200) // XXX This was 60
 #define configTOTAL_HEAP_SIZE                                                     ( \
         23 * 1024)
-#define configMAX_TASK_NAME_LEN                                                   (4)
+#define configMAX_TASK_NAME_LEN                                                   (32)
 #define configUSE_16_BIT_TICKS                                                    0
 #define configIDLE_SHOULD_YIELD                                                   1
 #define configUSE_MUTEXES                                                         1
