@@ -11,6 +11,7 @@
 
 #include "bsp.h"
 #include "freertos_miramesh_integration.h"
+#include "swi_callback_handler.h"
 
 #define UDP_PORT 456
 #define SEND_INTERVAL 60
@@ -64,6 +65,14 @@ xTaskHandle ledTaskHandle;
 /* When to call the time_callback next time: */
 static volatile uint32_t next_tick;
 
+static void ledTask_notification_callback(void) {
+	if (ledTaskHandle != NULL) {
+        portBASE_TYPE should_yield = pdFALSE;
+        xTaskNotifyFromISR(ledTaskHandle, 1, eSetBits, &should_yield);
+        portYIELD_FROM_ISR(should_yield);
+    }
+}
+
 static void time_callback(
     mira_net_time_t tick,
     void *storage)
@@ -75,12 +84,10 @@ static void time_callback(
      *
      * Using 1.28 seconds, to keep calculation fast, and therefore latency low
      */
-    if (ledTaskHandle != NULL) {
-        portBASE_TYPE should_yield = pdFALSE;
-        bsp_board_led_invert(BSP_BOARD_LED_2);
-        xTaskNotifyFromISR(ledTaskHandle, 1, eSetBits, &should_yield);
-        portYIELD_FROM_ISR(should_yield);
-    }
+	bsp_board_led_invert(BSP_BOARD_LED_2);
+    
+	/* Invoke notification from lower priority interrupt */
+	invoke_swi_callback(ledTask_notification_callback);
 
     /* Calculate next tick */
     next_tick = (tick & 0xffffff80) + 0x00000080;
@@ -184,6 +191,8 @@ static void controller(
 void start_miramesh_app(
     void)
 {
+	register_swi_callback(ledTask_notification_callback);
+
     /*
      * Create the controller task
      */

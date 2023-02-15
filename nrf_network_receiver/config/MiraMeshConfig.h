@@ -9,6 +9,10 @@
 #define MIRAMESH_RTC_IRQn   2
 #define MIRAMESH_SWI_IRQn   0
 
+#define SWI_CALLBACK_HANDLER_IRQn SWI3_EGU3_IRQn
+#define SWI_CALLBACK_HANDLER_IRQ_PRIO 5
+#define SWI_CALLBACK_LIST_SIZE 10
+
 /* --------------------------------------- */
 /* Define the used hardware                */
 
