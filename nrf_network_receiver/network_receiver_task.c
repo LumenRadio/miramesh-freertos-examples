@@ -65,8 +65,10 @@ xTaskHandle ledTaskHandle;
 /* When to call the time_callback next time: */
 static volatile uint32_t next_tick;
 
-static void ledTask_notification_callback(void) {
-	if (ledTaskHandle != NULL) {
+static void ledTask_notification_callback(
+    void)
+{
+    if (ledTaskHandle != NULL) {
         portBASE_TYPE should_yield = pdFALSE;
         xTaskNotifyFromISR(ledTaskHandle, 1, eSetBits, &should_yield);
         portYIELD_FROM_ISR(should_yield);
@@ -84,10 +86,10 @@ static void time_callback(
      *
      * Using 1.28 seconds, to keep calculation fast, and therefore latency low
      */
-	bsp_board_led_invert(BSP_BOARD_LED_2);
-    
-	/* Invoke notification from lower priority interrupt */
-	invoke_swi_callback(ledTask_notification_callback);
+    bsp_board_led_invert(BSP_BOARD_LED_2);
+
+    /* Invoke notification from lower priority interrupt */
+    invoke_swi_callback(ledTask_notification_callback);
 
     /* Calculate next tick */
     next_tick = (tick & 0xffffff80) + 0x00000080;
@@ -100,8 +102,8 @@ static void ledTask(
 
     while (1) {
         ulTaskNotifyTake(1, portMAX_DELAY);
-          /* Schedule next wakeup */
-          mira_net_time_schedule(next_tick, time_callback, NULL);
+        /* Schedule next wakeup */
+        mira_net_time_schedule(next_tick, time_callback, NULL);
     }
 }
 
@@ -132,7 +134,10 @@ static void controller(
      * Open a connection, but don't specify target address yet, which means
      * only mira_net_udp_send_to() can be used to send packets later.
      */
-    udp_connection = mira_net_udp_listen_address(NULL, UDP_PORT, udp_listen_callback, NULL);
+    udp_connection = mira_net_udp_listen_address(NULL,
+        UDP_PORT,
+        udp_listen_callback,
+        NULL);
 
     while (1) {
         vTaskDelayMs(SEND_INTERVAL * 1000);
@@ -144,7 +149,7 @@ static void controller(
 void start_miramesh_app(
     void)
 {
-	register_swi_callback(ledTask_notification_callback);
+    register_swi_callback(ledTask_notification_callback);
 
     if (pdPASS != xTaskCreate(ledTask,
         (const char *const) "ledTask",

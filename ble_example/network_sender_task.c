@@ -65,8 +65,10 @@ xTaskHandle ledTaskHandle;
 /* When to call the time_callback next time: */
 static volatile uint32_t next_tick;
 
-static void ledTask_notification_callback(void) {
-	if (ledTaskHandle != NULL) {
+static void ledTask_notification_callback(
+    void)
+{
+    if (ledTaskHandle != NULL) {
         portBASE_TYPE should_yield = pdFALSE;
         xTaskNotifyFromISR(ledTaskHandle, 1, eSetBits, &should_yield);
         portYIELD_FROM_ISR(should_yield);
@@ -84,10 +86,10 @@ static void time_callback(
      *
      * Using 1.28 seconds, to keep calculation fast, and therefore latency low
      */
-	bsp_board_led_invert(BSP_BOARD_LED_2);
-    
-	/* Invoke notification from lower priority interrupt */
-	invoke_swi_callback(ledTask_notification_callback);
+    bsp_board_led_invert(BSP_BOARD_LED_2);
+
+    /* Invoke notification from lower priority interrupt */
+    invoke_swi_callback(ledTask_notification_callback);
 
     /* Calculate next tick */
     next_tick = (tick & 0xffffff80) + 0x00000080;
@@ -139,7 +141,12 @@ static void controller(
      * Open a connection, but don't specify target address yet, which means
      * only mira_net_udp_send_to() can be used to send packets later.
      */
-    udp_connection = mira_net_udp_bind_address(NULL, NULL, 456, 456, udp_listen_callback, NULL);
+    udp_connection = mira_net_udp_bind_address(NULL,
+        NULL,
+        456,
+        456,
+        udp_listen_callback,
+        NULL);
 
     bool start_schedule = true;
     while (1) {
@@ -152,11 +159,12 @@ static void controller(
                 net_state == MIRA_NET_STATE_NOT_ASSOCIATED ? "not associated"
                 : net_state == MIRA_NET_STATE_ASSOCIATED   ? "associated"
                 : net_state == MIRA_NET_STATE_JOINED       ? "joined"
-                                                            : "UNKNOWN");
+                : "UNKNOWN");
             vTaskDelayMs(CHECK_NET_INTERVAL * 1000);
         } else {
             if (start_schedule) {
-                if (mira_net_time_get_time((uint32_t *)&next_tick) == MIRA_SUCCESS) {
+                if (mira_net_time_get_time((uint32_t *) &next_tick)
+                    == MIRA_SUCCESS) {
                     start_schedule = false;
                     mira_net_time_schedule(next_tick, time_callback, NULL);
                 } else {
@@ -177,9 +185,9 @@ static void controller(
                 * root node on the given UDP Port.
                 */
                 printf("Sending to address: %s\n",
-                        mira_net_toolkit_format_address(buffer, &net_address));
+                    mira_net_toolkit_format_address(buffer, &net_address));
                 mira_net_udp_send_to(udp_connection, &net_address, UDP_PORT,
-                                        message, strlen(message));
+                    message, strlen(message));
                 vTaskDelayMs(SEND_INTERVAL * 1000);
             }
         }
@@ -191,7 +199,7 @@ static void controller(
 void start_miramesh_app(
     void)
 {
-	register_swi_callback(ledTask_notification_callback);
+    register_swi_callback(ledTask_notification_callback);
 
     /*
      * Create the controller task

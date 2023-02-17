@@ -11,24 +11,28 @@
  * FreeRTOS API functions from a lower interrupt priority.
  */
 
-typedef void (*swi_callback_t)(void);
+typedef void (*swi_callback_t)(
+    void);
 
 /* Initializes the SWI callback handler.
  * Clears all previously registered callbacks.
- * Sets priority for and enables SWI_CALLBACK_HANDLER_IRQn. 
+ * Sets priority for and enables SWI_CALLBACK_HANDLER_IRQn.
  */
-void swi_callback_handler_init(void);
+void swi_callback_handler_init(
+    void);
 
 /* Registers a callback to be available for invoking.
  * @retval 0: success
  * @retval -1: fail (callback list full or already registered)
  */
-int register_swi_callback(swi_callback_t callback);
+int register_swi_callback(
+    swi_callback_t callback);
 
 /* Invokes a SWI callback to be called at next SWI_CALLBACK_HANDLER_IRQn.
  * A callback must first be registered before being invoked.
  * Sets SWI_CALLBACK_HANDLER_IRQn to pending after a successful invoke.
  */
-void invoke_swi_callback(swi_callback_t callback);
+void invoke_swi_callback(
+    swi_callback_t callback);
 
 #endif
