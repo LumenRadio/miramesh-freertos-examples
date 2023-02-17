@@ -17,12 +17,13 @@
 #include "MiraMeshConfig.h"
 
 #include "freertos_miramesh_integration.h"
+#include "swi_callback_handler.h"
 
 static xTaskHandle miramesh_task_handle;
 static SemaphoreHandle_t miramesh_api_lock = NULL;
 static SemaphoreHandle_t miramesh_integration_initialized = NULL;
 
-static void wake_miramesh_task_from_irq(
+static void miramesh_notification_callback(
     void)
 {
     if (miramesh_task_handle != NULL) {
@@ -30,6 +31,13 @@ static void wake_miramesh_task_from_irq(
         xTaskNotifyFromISR(miramesh_task_handle, 1, eSetBits, &switch_task);
         portYIELD_FROM_ISR(switch_task);
     }
+}
+
+static void wake_miramesh_task_from_irq(
+    void)
+{
+    /* Invoke notification from lower priority interrupt */
+    invoke_swi_callback(miramesh_notification_callback);
 }
 
 static void wake_miramesh_task_from_app(
@@ -144,6 +152,9 @@ void freertos_miramesh_integration_init(
     };
     miramesh_config.hardware = *hardware;
 
+    swi_callback_handler_init();
+    register_swi_callback(miramesh_notification_callback);
+
     if (!nrf_sdh_is_enabled()) {
         printf("Softdevice must be enabled\n");
         while (1)
@@ -188,7 +199,9 @@ void freertos_miramesh_integration_wait_for_ready(
 }
 
 #if configCHECK_FOR_STACK_OVERFLOW > 0
-void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
+void vApplicationStackOverflowHook(
+    TaskHandle_t xTask,
+    char *pcTaskName)
 {
     printf("Stack overflow: %s\n", pcTaskName);
 }

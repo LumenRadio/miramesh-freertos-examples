@@ -68,7 +68,7 @@
         200) // XXX This was 60
 #define configTOTAL_HEAP_SIZE                                                     ( \
         23 * 1024)
-#define configMAX_TASK_NAME_LEN                                                   (4)
+#define configMAX_TASK_NAME_LEN                                                   (32)
 #define configUSE_16_BIT_TICKS                                                    0
 #define configIDLE_SHOULD_YIELD                                                   1
 #define configUSE_MUTEXES                                                         1
@@ -137,7 +137,7 @@
 
 /* The lowest interrupt priority that can be used in a call to a "set priority"
 function. */
-#define configLIBRARY_LOWEST_INTERRUPT_PRIORITY         0xf
+#define configLIBRARY_LOWEST_INTERRUPT_PRIORITY         0x7
 
 /* The highest interrupt priority that can be used by any interrupt service
 routine that makes calls to interrupt safe FreeRTOS API functions.  DO NOT CALL
