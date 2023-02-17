@@ -5,7 +5,7 @@
 
 #include "swi_callback_handler.h"
 
-static void (*registered_swi_callbacks[SWI_CALLBACK_LIST_SIZE])(void);
+static swi_callback_t registered_swi_callbacks[SWI_CALLBACK_LIST_SIZE];
 static volatile int swi_callbacks_invoked[SWI_CALLBACK_LIST_SIZE];
 
 void swi_callback_handler_init(
