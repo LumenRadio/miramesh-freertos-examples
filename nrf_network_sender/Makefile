@@ -84,7 +84,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/experimental_section_vars/nrf_section_iter.c \
   $(PROJ_DIR)/main.c \
   $(PROJ_DIR)/network_sender_task.c \
-  $(PROJ_DIR)/../nrf_common/uart_output.c \
+  $(PROJ_DIR)/../nrf_common/uart.c \
   $(PROJ_DIR)/../nrf_common/miramesh_integration/miramesh_events.c \
   $(PROJ_DIR)/../nrf_common/miramesh_integration/miramesh_task.c \
   $(PROJ_DIR)/../nrf_common/miramesh_integration/swi_callback_handler.c \

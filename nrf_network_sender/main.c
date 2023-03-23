@@ -60,7 +60,7 @@
 #include "sdk_errors.h"
 #include "app_error.h"
 
-#include "uart_output.h"
+#include "uart.h"
 #include "network_sender_task.h"
 #include "freertos_miramesh_integration.h"
 
@@ -109,7 +109,12 @@ int main(
     ret_code_t err_code;
 
     /* Initialize serial port output for stdout */
-    init_uart();
+    uart_init(&(const uart_config_t) {
+        .baudrate = UART_BAUDRATE_BAUDRATE_Baud115200,
+        .pin_txd = 6,
+        .pin_rxd = 0xffffffff,
+        .irq_priority = 3
+    });
 
     /* Initialize clock driver for better time accuracy in FREERTOS */
     err_code = nrf_drv_clock_init();
