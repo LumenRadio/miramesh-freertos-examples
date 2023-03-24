@@ -11,7 +11,7 @@
 
 #include <mira_diag_log.h>
 typedef enum {
-#include "../libmira/diag_files/events.h.gen"
+#include "events.h.gen"
 } events_t;
 
 static bool always_true (

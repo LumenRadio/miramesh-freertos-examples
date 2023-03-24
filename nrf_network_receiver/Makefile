@@ -88,9 +88,6 @@ SRC_FILES += \
   $(PROJ_DIR)/../nrf_common/miramesh_integration/miramesh_events.c \
   $(PROJ_DIR)/../nrf_common/miramesh_integration/miramesh_task.c \
   $(PROJ_DIR)/../nrf_common/miramesh_integration/swi_callback_handler.c \
-  $(SDK_ROOT)/components/libraries/uart/app_uart.c \
-  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uart.c \
-  $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \

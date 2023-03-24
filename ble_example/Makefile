@@ -77,7 +77,7 @@ SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_power.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_ppi.c \
-	$(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
+  $(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
   $(SDK_ROOT)/components/libraries/bsp/bsp.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_freertos.c \
@@ -90,9 +90,6 @@ SRC_FILES += \
   $(PROJ_DIR)/../nrf_common/miramesh_integration/miramesh_events.c \
   $(PROJ_DIR)/../nrf_common/miramesh_integration/miramesh_task.c \
   $(PROJ_DIR)/../nrf_common/miramesh_integration/swi_callback_handler.c \
-  $(SDK_ROOT)/components/libraries/uart/app_uart.c \
-  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uart.c \
-  $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
   $(SDK_ROOT)/components/ble/peer_manager/auth_status_tracker.c \
   $(SDK_ROOT)/components/ble/common/ble_advdata.c \
   $(SDK_ROOT)/components/ble/ble_advertising/ble_advertising.c \
@@ -141,6 +138,7 @@ SRC_FILES += \
 # Include folders common to all targets
 INC_FOLDERS += \
   $(MIRA_LIB)/include \
+  $(MIRA_LIB)/diag_files \
   $(PROJ_DIR)/config \
   $(SDK_ROOT)/components \
   $(SDK_ROOT)/modules/nrfx/mdk \

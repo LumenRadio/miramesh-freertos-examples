@@ -3,6 +3,7 @@
 
 #include "FreeRTOS.h"
 #include "stream_buffer.h"
+#include "semphr.h"
 
 #include <stdint.h>
 #include <stdbool.h>
