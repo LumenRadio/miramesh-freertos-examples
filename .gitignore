@@ -1,1 +1,11 @@
 **/obj_*
+
+/build
+
+/src/vendor/nrf5-sdk
+/src/vendor/libmira
+
+*.elf
+*.hex
+
+!**/.keep
