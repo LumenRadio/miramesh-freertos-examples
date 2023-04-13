@@ -24,12 +24,7 @@ static const mira_net_config_t net_config = {
         0x31, 0x32, 0x33, 0x34,
         0x41, 0x42, 0x43, 0x44
     },
-    /* Prioritize initial network startup, which is good for testing.
-     *
-     * This has the drawback that the network takes a much
-     * longer time to recover if the root node is restarted. */
     .mode = MIRA_NET_MODE_MESH,
-
     .rate = MIRA_NET_RATE_MID,
     .antenna = 0,
     .prefix = NULL /* default prefix */

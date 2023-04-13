@@ -33,7 +33,5 @@ clean: FORCE
 	rm -rf reports
 	rm -rf $(ALLAPPS)
 
-check: behave unittest
-
 FORCE:
-.PHONY: FORCE check behave unittest
+.PHONY: FORCE
