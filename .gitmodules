@@ -1,0 +1,6 @@
+[submodule "src/vendor/tinyprintf"]
+	path = src/vendor/tinyprintf
+	url = https://github.com/cjlano/tinyprintf.git
+[submodule "src/vendor/freertos"]
+	path = src/vendor/freertos
+	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
