@@ -67,9 +67,55 @@ void vPortSetupTimerInterrupt(
     current_tick_time = previous_tick_time;
     /* Trigger SysTick exception */
     SCB->ICSR = SCB_ICSR_PENDSTSET_Msk;
+
+    /* Wakeup routine depends on WFE waking up from IRQ */
+    /* also needed for ERRATA 220 fix for 52832 */
+    SCB->SCR |= SCB_SCR_SEVONPEND_Msk;
 }
 
 #if (configUSE_TICKLESS_IDLE == 1)
+
+/**
+ * Wrapper for WFE instruction, with fixes for nordic erratas
+ *
+ * To be called with interrupts disabled
+ */
+static void wait_for_event(
+    void)
+{
+    /* ERRATA 87 fix */
+    if ((SCB->CPACR & ((1UL << 20) | (1UL << 22)))
+        == ((1UL << 20) | (1UL << 22))) {
+        asm (
+            "vmrs r0, fpscr      \n"
+            "bic  r0, r0, 0x9f   \n"
+            "vmsr fpscr, r0      \n"
+            "vmrs r0, fpscr      \n"
+            : : : "r0"
+        );
+        NVIC_ClearPendingIRQ(FPU_IRQn);
+    }
+
+#ifdef NRF52832_XXAA
+    /* ERRATA 75 fix for 52832 */
+    uint32_t enabled_regions = NRF_MWU->REGIONENCLR;
+    NRF_MWU->REGIONENCLR = enabled_regions;
+#endif
+
+    __WFE();
+
+#ifdef NRF52832_XXAA
+    /* ERRATA 220 fix for 52832-rev1 */
+    __NOP();
+    __NOP();
+    __NOP();
+    __NOP();
+
+    /* ERRATA 75 fix for 52832 */
+    NRF_MWU->REGIONENSET = enabled_regions;
+#endif
+}
+
 void vPortSuppressTicksAndSleep(
     TickType_t xExpectedIdleTime)
 {
@@ -110,20 +156,11 @@ void vPortSuppressTicksAndSleep(
         TickType_t xModifiableIdleTime = xExpectedIdleTime;
         configPRE_SLEEP_PROCESSING(xModifiableIdleTime);
         if (xModifiableIdleTime > 0) {
-#if SOFTDEVICE_PRESENT
-            if (nrf_sdh_is_enabled()) {
-                uint32_t err_code = sd_app_evt_wait();
-                APP_ERROR_CHECK(err_code);
-            } else
-#endif
-            {
-                /* No SD -  we would just block interrupts globally.
-                * BASEPRI cannot be used for that because it would prevent WFE from wake up.
-                */
-                do {
-                    __WFE();
-                } while (0 == (NVIC->ISPR[0] | NVIC->ISPR[1]));
-            }
+            /* There are issues with using sd_app_evt_wait and current
+             * consumption. Therefore do WFE manually */
+            do {
+                wait_for_event();
+            } while (0 == (NVIC->ISPR[0] | NVIC->ISPR[1]));
         }
         configPOST_SLEEP_PROCESSING(xExpectedIdleTime);
 
