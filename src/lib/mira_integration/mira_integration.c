@@ -5,6 +5,7 @@
 #include "mira_integration_config.h"
 
 #include <stddef.h>
+#include <string.h>
 
 #if MIRAMESH_STARTS_SOFTDEVICE
 #include "softdevice_integration.h"
@@ -21,6 +22,9 @@ void mira_integration_init(
     void)
 {
     miramesh_config_t miramesh_config;
+
+    /* Zero out the entire struct to guarantee Mira version compatibility */
+    memset(&miramesh_config, 0, sizeof(miramesh_config_t));
 
     #if MIRAMESH_STARTS_SOFTDEVICE
     softdevice_integration_init();
