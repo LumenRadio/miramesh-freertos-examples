@@ -33,6 +33,13 @@ void SysTick_Handler(
     diff = (current_tick_time - previous_tick_time) / cyclesPerTick;
     if (diff < 1) {
         diff = 1;
+    } else if (diff > 1) {
+        /* Correct the tick count when processor sleeps skipping a
+         * few scheduler ticks.
+         *
+         * Increment by (diff - 1) as xPortSysTickHandler() call at the end
+         * would increment tick by 1 */
+        vTaskStepTick ((TickType_t) diff - 1);
     }
 #else
     /* If not tickless, we need to catch up to keep track of tick count */
@@ -41,7 +48,7 @@ void SysTick_Handler(
     previous_tick_time += diff * cyclesPerTick;
 
     miramesh_timer_schedule(
-        previous_tick_time + cyclesPerTick,
+        previous_tick_time + cyclesPerTick, /* Schedule for next tick */
         tick_callback,
         NULL);
 
@@ -142,7 +149,6 @@ void vPortSuppressTicksAndSleep(
     __disable_irq();
 #endif
 
-    miracore_timer_interval_t diff = 0;
     if (enterTime != previous_tick_time) {
         miramesh_timer_schedule(previous_tick_time + cyclesPerTick,
             tick_callback,
@@ -166,9 +172,9 @@ void vPortSuppressTicksAndSleep(
 
         /* Correct the system ticks */
         {
+            TickType_t diff = 0;
             miracore_timer_time_t exitTime = miramesh_timer_get_time_now();
-            diff = exitTime - enterTime;
-            diff /= cyclesPerTick;
+            diff = (exitTime - enterTime) / cyclesPerTick;
 
 #if 0
             if ((configUSE_TICKLESS_IDLE_SIMPLE_DEBUG)
