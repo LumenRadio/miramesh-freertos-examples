@@ -14,8 +14,7 @@ static StreamBufferHandle_t uart_tx_stream;
 static StreamBufferHandle_t uart_rx_stream;
 static bool uart_tx_ready;
 
-void uart_init(
-    const uart_config_t *config)
+void uart_init(const uart_config_t* config)
 {
     NRF_UART0->ENABLE = UART_ENABLE_ENABLE_Enabled;
     NRF_UART0->BAUDRATE = config->baudrate;
@@ -53,9 +52,7 @@ void uart_init(
     NVIC_EnableIRQ(UARTE0_UART0_IRQn);
 }
 
-void uart_tx(
-    const char *buffer,
-    int len)
+void uart_tx(const char* buffer, int len)
 {
     configASSERT(uart_tx_stream != NULL);
     xStreamBufferSend(uart_tx_stream, buffer, len, portMAX_DELAY);
@@ -63,29 +60,21 @@ void uart_tx(
     NVIC_SetPendingIRQ(UARTE0_UART0_IRQn);
 }
 
-int uart_rx(
-    char *buffer,
-    int max_len)
+int uart_rx(char* buffer, int max_len)
 {
     configASSERT(uart_rx_stream != NULL);
     return xStreamBufferReceive(uart_rx_stream, buffer, max_len, portMAX_DELAY);
 }
 
-void UARTE0_UART0_IRQHandler(
-    void)
+void UARTE0_UART0_IRQHandler(void)
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
     /* Reception */
     if (NRF_UART0->EVENTS_RXDRDY) {
         NRF_UART0->EVENTS_RXDRDY = 0;
-        uint8_t rx_byte = (uint8_t) NRF_UART0->RXD;
-        xStreamBufferSendFromISR(
-            uart_rx_stream,
-            &rx_byte,
-            1,
-            &xHigherPriorityTaskWoken
-        );
+        uint8_t rx_byte = (uint8_t)NRF_UART0->RXD;
+        xStreamBufferSendFromISR(uart_rx_stream, &rx_byte, 1, &xHigherPriorityTaskWoken);
     }
 
     /* Transmission */
@@ -95,12 +84,8 @@ void UARTE0_UART0_IRQHandler(
     }
     if (uart_tx_ready) {
         uint8_t tx_byte;
-        size_t len = xStreamBufferReceiveFromISR(
-            uart_tx_stream,
-            &tx_byte,
-            1,
-            &xHigherPriorityTaskWoken
-        );
+        size_t len =
+          xStreamBufferReceiveFromISR(uart_tx_stream, &tx_byte, 1, &xHigherPriorityTaskWoken);
         if (len > 0) {
             uart_tx_ready = false;
             NRF_UART0->TXD = tx_byte;

@@ -2,12 +2,10 @@
 #include "nrf_sdh_soc.h"
 #include "mira_integration_config.h"
 
-static void sd_evt_observer(
-    uint32_t evt_id,
-    void *context)
+static void sd_evt_observer(uint32_t evt_id, void* context)
 {
-    (void) evt_id;
-    (void) context;
+    (void)evt_id;
+    (void)context;
 
     miramesh_handle_sd_event(evt_id);
 }
@@ -44,8 +42,7 @@ void SWI5_EGU5_IRQHandler(void)
     miramesh_swi_irq_handler();
 }
 
-void SWI1_EGU1_IRQHandler(
-    void)
+void SWI1_EGU1_IRQHandler(void)
 {
     miramesh_swi1_irq_handler();
 }

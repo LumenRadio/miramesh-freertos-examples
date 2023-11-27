@@ -3,7 +3,6 @@
 
 #include "miramesh.h"
 
-void mira_integration_task_init(
-    miramesh_callback_cfg_t *cbconfig);
+void mira_integration_task_init(miramesh_callback_cfg_t* cbconfig);
 
 #endif

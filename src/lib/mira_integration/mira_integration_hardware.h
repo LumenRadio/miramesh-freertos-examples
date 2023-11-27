@@ -3,7 +3,6 @@
 
 #include "miramesh.h"
 
-void mira_integration_hardware_init(
-    miramesh_hardware_cfg_t *hwconfig);
+void mira_integration_hardware_init(miramesh_hardware_cfg_t* hwconfig);
 
 #endif

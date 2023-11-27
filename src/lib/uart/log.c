@@ -11,8 +11,7 @@
 
 static QueueHandle_t log_queue;
 
-static void log_task(
-    void *storage);
+static void log_task(void* storage);
 
 /**
  * For formatting in line callback
@@ -30,9 +29,7 @@ static void log_task(
  *
  * returns dst for convenience
  */
-char *log_tick_to_string(
-    char *dst,
-    TickType_t tick)
+char* log_tick_to_string(char* dst, TickType_t tick)
 {
     uint32_t sec = tick / configTICK_RATE_HZ;
     uint32_t min = sec / 60;
@@ -61,26 +58,22 @@ char *log_tick_to_string(
 
 /**
  * Low level log output
- * 
+ *
  * May only be used from log_task, since uart_tx is not re-entrant
  */
-static void log_output(
-    TickType_t time,
-    const char *task,
-    const char *line)
+static void log_output(TickType_t time, const char* task, const char* line)
 {
     int len;
     /* Handle at least 80 chars with margin for control chars + task name */
     char buffer[10 + LOG_MAX_LINE_LEN];
     char tstamp[20];
 
-    len = tfp_snprintf(
-        buffer,
-        sizeof(buffer),
-        "%12s : %-15s: %s\n",
-        log_tick_to_string(tstamp, time), /* 12 char for <24h runtime */
-        task,
-        line);
+    len = tfp_snprintf(buffer,
+                       sizeof(buffer),
+                       "%12s : %-15s: %s\n",
+                       log_tick_to_string(tstamp, time), /* 12 char for <24h runtime */
+                       task,
+                       line);
 
     /* Make sure the second to last character is line break if truncated */
     if (len > sizeof(buffer) - 1) {
@@ -92,8 +85,7 @@ static void log_output(
     uart_tx(buffer, len);
 }
 
-void log_init(
-    void)
+void log_init(void)
 {
     log_queue = xQueueCreate(LOG_QUEUE_NUM_ENTRIES, sizeof(log_line_t));
 #if configQUEUE_REGISTRY_SIZE > 0
@@ -101,20 +93,19 @@ void log_init(
 #endif
 
     xTaskCreate(log_task,
-        "sys log",
-        192, /* Stack size */
-        NULL,
-        4, /* Priority */
-        NULL);
+                "sys log",
+                192, /* Stack size */
+                NULL,
+                4, /* Priority */
+                NULL);
 }
 
-static void log_task(
-    void *storage)
+static void log_task(void* storage)
 {
     log_line_t line;
     for (;;) {
         if (pdTRUE == xQueueReceive(log_queue, &line, portMAX_DELAY)) {
-            const char *task_name;
+            const char* task_name;
             if (line.task != NULL) {
                 task_name = pcTaskGetName(line.task);
             } else {
@@ -125,16 +116,12 @@ static void log_task(
     }
 }
 
-void log_line_start(
-    log_line_t *line)
+void log_line_start(log_line_t* line)
 {
     line->len = 0;
 }
 
-void log_line_add(
-    log_line_t *line,
-    const char *fmt,
-    ...)
+void log_line_add(log_line_t* line, const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -142,10 +129,7 @@ void log_line_add(
     va_end(ap);
 }
 
-void log_line_addv(
-    log_line_t *line,
-    const char *fmt,
-    va_list ap)
+void log_line_addv(log_line_t* line, const char* fmt, va_list ap)
 {
     int len;
 
@@ -153,10 +137,7 @@ void log_line_addv(
         return;
     }
 
-    len = tfp_vsnprintf(
-        line->buffer + line->len,
-        LOG_MAX_LINE_LEN - line->len + 1,
-        fmt, ap);
+    len = tfp_vsnprintf(line->buffer + line->len, LOG_MAX_LINE_LEN - line->len + 1, fmt, ap);
 
     if (len > LOG_MAX_LINE_LEN - line->len) {
         len = LOG_MAX_LINE_LEN - line->len;
@@ -164,10 +145,9 @@ void log_line_addv(
     line->len += len;
 }
 
-void log_line_end(
-    log_line_t *line)
+void log_line_end(log_line_t* line)
 {
-    if(log_queue == NULL) {
+    if (log_queue == NULL) {
         return;
     }
     line->task = xTaskGetCurrentTaskHandle();
@@ -175,9 +155,7 @@ void log_line_end(
     xQueueSendToBack(log_queue, line, portMAX_DELAY);
 }
 
-void log_line(
-    const char *fmt,
-    ...)
+void log_line(const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -185,9 +163,7 @@ void log_line(
     va_end(ap);
 }
 
-void log_linev(
-    const char *fmt,
-    va_list ap)
+void log_linev(const char* fmt, va_list ap)
 {
     log_line_t line;
     log_line_start(&line);
@@ -195,9 +171,7 @@ void log_linev(
     log_line_end(&line);
 }
 
-void log_line_isr(
-    const char *fmt,
-    ...)
+void log_line_isr(const char* fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -205,9 +179,7 @@ void log_line_isr(
     va_end(ap);
 }
 
-void log_linev_isr(
-    const char *fmt,
-    va_list ap)
+void log_linev_isr(const char* fmt, va_list ap)
 {
     log_line_t line;
     log_line_start(&line);
@@ -215,8 +187,7 @@ void log_linev_isr(
     log_line_end_isr(&line);
 }
 
-void log_line_end_isr(
-    log_line_t *line)
+void log_line_end_isr(log_line_t* line)
 {
     BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
     line->task = NULL;

@@ -12,11 +12,9 @@
 
 #include "ble_app.h"
 
-static void main_task(
-    void *pv_param);
+static void main_task(void* pv_param);
 
-int main(
-    void)
+int main(void)
 {
     /*
      * Initialize what's required before startup of scheduler. Rest is started
@@ -31,12 +29,10 @@ int main(
     mira_integration_init();
 
     /* Initialize serial port for debug interface */
-    uart_init(&(const uart_config_t) {
-        .baudrate = UART_BAUDRATE_BAUDRATE_Baud1M,
-        .pin_txd = 6,
-        .pin_rxd = 0xffffffff,
-        .irq_priority = _PRIO_APP_HIGH
-    });
+    uart_init(&(const uart_config_t){ .baudrate = UART_BAUDRATE_BAUDRATE_Baud1M,
+                                      .pin_txd = 6,
+                                      .pin_rxd = 0xffffffff,
+                                      .irq_priority = _PRIO_APP_HIGH });
     log_init();
 
     /* Activate deep sleep mode */
@@ -50,8 +46,7 @@ int main(
     return 0;
 }
 
-static void main_task(
-    void *pv_param)
+static void main_task(void* pv_param)
 {
     mira_sys_device_id_t devid;
 
@@ -65,9 +60,14 @@ static void main_task(
     log_line(" ");
     mira_sys_get_device_id(&devid);
     log_line("Device ID: %02x%02x%02x%02x%02x%02x%02x%02x",
-        devid.u8[0], devid.u8[1], devid.u8[2], devid.u8[3],
-        devid.u8[4], devid.u8[5], devid.u8[6], devid.u8[7]
-    );
+             devid.u8[0],
+             devid.u8[1],
+             devid.u8[2],
+             devid.u8[3],
+             devid.u8[4],
+             devid.u8[5],
+             devid.u8[6],
+             devid.u8[7]);
     log_line(" ");
 
     /* Start BLE task */

@@ -32,4 +32,4 @@ static const mira_net_frontend_config_t frontend_config __attribute__ ((unused))
 };
 
 /* Frontend to use, can be either a frontend config or NULL */
-const mira_net_frontend_config_t *mira_integration_frontend = NULL;
+const mira_net_frontend_config_t* mira_integration_frontend = NULL;
