@@ -33,5 +33,8 @@ clean: FORCE
 	rm -rf reports
 	rm -rf $(ALLAPPS)
 
+fmt:
+	find -name '*.[ch]' -print0 | xargs -0 clang-format -i --style=file
+
 FORCE:
-.PHONY: FORCE
+.PHONY: all clean fmt FORCE

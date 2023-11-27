@@ -45,7 +45,6 @@
 #include "app_config.h"
 #endif
 
-
 #define ADVANCED_ADVDATA_SUPPORT 0
 #define APDU_BUFF_SIZE 250
 #define APP_BUTTON_CONFIG_DEBUG_COLOR 0
@@ -94,7 +93,8 @@
 #define APP_USBD_STRINGS_CONFIGURATION APP_USBD_STRING_DESC("Default configuration")
 #define APP_USBD_STRING_SERIAL APP_USBD_STRING_DESC("000000000000")
 #define APP_USBD_STRING_SERIAL_EXTERN 0
-#define APP_USBD_STRINGS_LANGIDS APP_USBD_LANG_AND_SUBLANG(APP_USBD_LANG_ENGLISH, APP_USBD_SUBLANG_ENGLISH_US)
+#define APP_USBD_STRINGS_LANGIDS \
+    APP_USBD_LANG_AND_SUBLANG(APP_USBD_LANG_ENGLISH, APP_USBD_SUBLANG_ENGLISH_US)
 #define APP_USBD_STRINGS_MANUFACTURER APP_USBD_STRING_DESC("Nordic Semiconductor")
 #define APP_USBD_STRINGS_MANUFACTURER_EXTERN 0
 #define APP_USBD_STRINGS_PRODUCT APP_USBD_STRING_DESC("nRF52 USB Product")
@@ -948,7 +948,6 @@
 #define WDT_CONFIG_RELOAD_VALUE 2000
 #define WDT_ENABLED 0
 
-
 // <h> nRF_Drivers
 
 // ==========================================================
@@ -1243,12 +1242,12 @@
 #define APP_TIMER_KEEPS_RTC_ACTIVE 0
 #endif
 
-// <o> APP_TIMER_SAFE_WINDOW_MS - Maximum possible latency (in milliseconds) of handling app_timer event.
-// <i> Maximum possible timeout that can be set is reduced by safe window.
-// <i> Example: RTC frequency 16384 Hz, maximum possible timeout 1024 seconds - APP_TIMER_SAFE_WINDOW_MS.
-// <i> Since RTC is not stopped when processor is halted in debugging session, this value
-// <i> must cover it if debugging is needed. It is possible to halt processor for APP_TIMER_SAFE_WINDOW_MS
-// <i> without corrupting app_timer behavior.
+// <o> APP_TIMER_SAFE_WINDOW_MS - Maximum possible latency (in milliseconds) of handling app_timer
+// event. <i> Maximum possible timeout that can be set is reduced by safe window. <i> Example: RTC
+// frequency 16384 Hz, maximum possible timeout 1024 seconds - APP_TIMER_SAFE_WINDOW_MS. <i> Since
+// RTC is not stopped when processor is halted in debugging session, this value <i> must cover it if
+// debugging is needed. It is possible to halt processor for APP_TIMER_SAFE_WINDOW_MS <i> without
+// corrupting app_timer behavior.
 
 #ifndef APP_TIMER_SAFE_WINDOW_MS
 #define APP_TIMER_SAFE_WINDOW_MS 300000
@@ -1302,13 +1301,15 @@
 #define NRF_BALLOC_CONFIG_BASIC_CHECKS_ENABLED 0
 #endif
 
-// <q> NRF_BALLOC_CONFIG_DOUBLE_FREE_CHECK_ENABLED  - Enables double memory free check in this module.
+// <q> NRF_BALLOC_CONFIG_DOUBLE_FREE_CHECK_ENABLED  - Enables double memory free check in this
+// module.
 
 #ifndef NRF_BALLOC_CONFIG_DOUBLE_FREE_CHECK_ENABLED
 #define NRF_BALLOC_CONFIG_DOUBLE_FREE_CHECK_ENABLED 0
 #endif
 
-// <q> NRF_BALLOC_CONFIG_DATA_TRASHING_CHECK_ENABLED  - Enables free memory corruption check in this module.
+// <q> NRF_BALLOC_CONFIG_DATA_TRASHING_CHECK_ENABLED  - Enables free memory corruption check in this
+// module.
 
 #ifndef NRF_BALLOC_CONFIG_DATA_TRASHING_CHECK_ENABLED
 #define NRF_BALLOC_CONFIG_DATA_TRASHING_CHECK_ENABLED 0
@@ -1455,7 +1456,8 @@
 #define NRF_LOG_FILTERS_ENABLED 0
 #endif
 
-// <o> NRF_LOG_STR_PUSH_BUFFER_SIZE  - Size of the buffer dedicated for strings stored using @ref NRF_LOG_PUSH.
+// <o> NRF_LOG_STR_PUSH_BUFFER_SIZE  - Size of the buffer dedicated for strings stored using @ref
+// NRF_LOG_PUSH.
 
 // <16=> 16
 // <32=> 32
@@ -1469,7 +1471,8 @@
 #define NRF_LOG_STR_PUSH_BUFFER_SIZE 128
 #endif
 
-// <o> NRF_LOG_STR_PUSH_BUFFER_SIZE  - Size of the buffer dedicated for strings stored using @ref NRF_LOG_PUSH.
+// <o> NRF_LOG_STR_PUSH_BUFFER_SIZE  - Size of the buffer dedicated for strings stored using @ref
+// NRF_LOG_PUSH.
 
 // <16=> 16
 // <32=> 32
@@ -1545,7 +1548,8 @@
 #ifndef NRF_LOG_USES_TIMESTAMP
 #define NRF_LOG_USES_TIMESTAMP 0
 #endif
-// <o> NRF_LOG_TIMESTAMP_DEFAULT_FREQUENCY - Default frequency of the timestamp (in Hz) or 0 to use app_timer frequency.
+// <o> NRF_LOG_TIMESTAMP_DEFAULT_FREQUENCY - Default frequency of the timestamp (in Hz) or 0 to use
+// app_timer frequency.
 #ifndef NRF_LOG_TIMESTAMP_DEFAULT_FREQUENCY
 #define NRF_LOG_TIMESTAMP_DEFAULT_FREQUENCY 0
 #endif
@@ -3087,7 +3091,8 @@
 #define NRF_ATFIFO_CONFIG_LOG_LEVEL 3
 #endif
 
-// <o> NRF_ATFIFO_CONFIG_LOG_INIT_FILTER_LEVEL  - Initial severity level if dynamic filtering is enabled
+// <o> NRF_ATFIFO_CONFIG_LOG_INIT_FILTER_LEVEL  - Initial severity level if dynamic filtering is
+// enabled
 
 // <0=> Off
 // <1=> Error
@@ -3150,7 +3155,8 @@
 #define NRF_BALLOC_CONFIG_LOG_LEVEL 3
 #endif
 
-// <o> NRF_BALLOC_CONFIG_INITIAL_LOG_LEVEL  - Initial severity level if dynamic filtering is enabled.
+// <o> NRF_BALLOC_CONFIG_INITIAL_LOG_LEVEL  - Initial severity level if dynamic filtering is
+// enabled.
 
 // <i> If module generates a lot of logs, initial log level can
 // <i> be decreased to prevent flooding. Severity level can be
@@ -3216,7 +3222,8 @@
 #define NRF_BLOCK_DEV_EMPTY_CONFIG_LOG_LEVEL 3
 #endif
 
-// <o> NRF_BLOCK_DEV_EMPTY_CONFIG_LOG_INIT_FILTER_LEVEL  - Initial severity level if dynamic filtering is enabled
+// <o> NRF_BLOCK_DEV_EMPTY_CONFIG_LOG_INIT_FILTER_LEVEL  - Initial severity level if dynamic
+// filtering is enabled
 
 // <0=> Off
 // <1=> Error
@@ -3279,7 +3286,8 @@
 #define NRF_BLOCK_DEV_QSPI_CONFIG_LOG_LEVEL 3
 #endif
 
-// <o> NRF_BLOCK_DEV_QSPI_CONFIG_LOG_INIT_FILTER_LEVEL  - Initial severity level if dynamic filtering is enabled
+// <o> NRF_BLOCK_DEV_QSPI_CONFIG_LOG_INIT_FILTER_LEVEL  - Initial severity level if dynamic
+// filtering is enabled
 
 // <0=> Off
 // <1=> Error
@@ -3342,7 +3350,8 @@
 #define NRF_BLOCK_DEV_RAM_CONFIG_LOG_LEVEL 3
 #endif
 
-// <o> NRF_BLOCK_DEV_RAM_CONFIG_LOG_INIT_FILTER_LEVEL  - Initial severity level if dynamic filtering is enabled
+// <o> NRF_BLOCK_DEV_RAM_CONFIG_LOG_INIT_FILTER_LEVEL  - Initial severity level if dynamic filtering
+// is enabled
 
 // <0=> Off
 // <1=> Error
@@ -3711,7 +3720,8 @@
 #define NRF_QUEUE_CONFIG_LOG_LEVEL 3
 #endif
 
-// <o> NRF_QUEUE_CONFIG_LOG_INIT_FILTER_LEVEL  - Initial severity level if dynamic filtering is enabled
+// <o> NRF_QUEUE_CONFIG_LOG_INIT_FILTER_LEVEL  - Initial severity level if dynamic filtering is
+// enabled
 
 // <0=> Off
 // <1=> Error
@@ -4172,7 +4182,8 @@
 
 // </e>
 
-// <q> NRF_LOG_STR_FORMATTER_TIMESTAMP_FORMAT_ENABLED  - nrf_log_str_formatter - Log string formatter
+// <q> NRF_LOG_STR_FORMATTER_TIMESTAMP_FORMAT_ENABLED  - nrf_log_str_formatter - Log string
+// formatter
 
 #ifndef NRF_LOG_STR_FORMATTER_TIMESTAMP_FORMAT_ENABLED
 #define NRF_LOG_STR_FORMATTER_TIMESTAMP_FORMAT_ENABLED 1

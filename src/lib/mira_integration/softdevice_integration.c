@@ -7,8 +7,7 @@
 
 #include "FreeRTOS.h"
 
-void softdevice_integration_init(
-    void)
+void softdevice_integration_init(void)
 {
     ret_code_t err_code;
 

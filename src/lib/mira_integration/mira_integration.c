@@ -18,20 +18,19 @@
 extern const uint8_t __CertificateStart[];
 extern const uint8_t __CertificateEnd[];
 
-void mira_integration_init(
-    void)
+void mira_integration_init(void)
 {
     miramesh_config_t miramesh_config;
 
     /* Zero out the entire struct to guarantee Mira version compatibility */
     memset(&miramesh_config, 0, sizeof(miramesh_config_t));
 
-    #if MIRAMESH_STARTS_SOFTDEVICE
+#if MIRAMESH_STARTS_SOFTDEVICE
     softdevice_integration_init();
-    #endif
-    #if MIRAMESH_STARTS_SWI_CALLBACK_HANDLER
+#endif
+#if MIRAMESH_STARTS_SWI_CALLBACK_HANDLER
     swi_callback_handler_init();
-    #endif
+#endif
 
     mira_integration_hardware_init(&miramesh_config.hardware);
     mira_integration_task_init(&miramesh_config.callback);

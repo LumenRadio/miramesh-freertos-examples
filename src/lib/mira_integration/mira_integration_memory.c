@@ -12,15 +12,13 @@
  *
  * Note: heap1.c does not have any protection against over-allocation
  */
-//uint8_t ucHeap[configTOTAL_HEAP_SIZE] __attribute__ ((section(".heap")));
+// uint8_t ucHeap[configTOTAL_HEAP_SIZE] __attribute__ ((section(".heap")));
 
-static void *mira_integration_memory_malloc(
-    mira_size_t size,
-    void *storage)
+static void* mira_integration_memory_malloc(mira_size_t size, void* storage)
 {
-    (void) storage;
+    (void)storage;
 
-    void *buffer = pvPortMalloc(size);
+    void* buffer = pvPortMalloc(size);
 
     /* MiraMesh will fail if allocation fails */
     configASSERT(buffer != NULL);
@@ -28,8 +26,7 @@ static void *mira_integration_memory_malloc(
     return buffer;
 }
 
-void mira_integration_memory_init(
-    void)
+void mira_integration_memory_init(void)
 {
     /*
      * Mira uses dynamic memory allocation during startup, same way as FreeRTOS

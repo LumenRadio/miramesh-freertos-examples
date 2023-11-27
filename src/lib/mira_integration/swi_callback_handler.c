@@ -31,8 +31,7 @@
 static swi_callback_t registered_swi_callbacks[SWI_CALLBACK_LIST_SIZE];
 static volatile int swi_callbacks_invoked[SWI_CALLBACK_LIST_SIZE];
 
-void swi_callback_handler_init(
-    void)
+void swi_callback_handler_init(void)
 {
     for (int i = 0; i < SWI_CALLBACK_LIST_SIZE; ++i) {
         registered_swi_callbacks[i] = NULL;
@@ -43,8 +42,7 @@ void swi_callback_handler_init(
     sd_nvic_EnableIRQ(SWI_CALLBACK_HANDLER_IRQn);
 }
 
-void invoke_swi_callback(
-    swi_callback_t callback)
+void invoke_swi_callback(swi_callback_t callback)
 {
     for (int i = 0; i < SWI_CALLBACK_LIST_SIZE; ++i) {
         if (callback == registered_swi_callbacks[i]) {
@@ -57,8 +55,7 @@ void invoke_swi_callback(
     configASSERT(0);
 }
 
-void register_swi_callback(
-    swi_callback_t callback)
+void register_swi_callback(swi_callback_t callback)
 {
     for (int i = 0; i < SWI_CALLBACK_LIST_SIZE; ++i) {
         /* Check if already is registered */
@@ -74,8 +71,7 @@ void register_swi_callback(
     configASSERT(0);
 }
 
-void SWI_CALLBACK_HANDLER_IRQHandler(
-    void)
+void SWI_CALLBACK_HANDLER_IRQHandler(void)
 {
     for (int i = 0; i < SWI_CALLBACK_LIST_SIZE; ++i) {
         if (swi_callbacks_invoked[i]) {

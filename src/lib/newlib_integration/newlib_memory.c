@@ -3,7 +3,7 @@
 
 #define NEWLIB_MEMORY_BUFFER_SIZE 4096
 
-static uint8_t *newlib_memory = NULL;
+static uint8_t* newlib_memory = NULL;
 static size_t newlib_memory_ptr;
 
 /**
@@ -18,8 +18,7 @@ static size_t newlib_memory_ptr;
  * Better is however not to depend on newlib, since those functions are not
  * properly reentrant anyway
  */
-void *_sbrk(
-    int incr)
+void* _sbrk(int incr)
 {
     if (newlib_memory == NULL) {
         newlib_memory = pvPortMalloc(NEWLIB_MEMORY_BUFFER_SIZE);
@@ -28,7 +27,7 @@ void *_sbrk(
 
     if (newlib_memory_ptr + incr > NEWLIB_MEMORY_BUFFER_SIZE) {
         errno = ENOMEM;
-        return (char *) -1;
+        return (char*)-1;
     } else {
         newlib_memory_ptr += incr;
         return newlib_memory + newlib_memory_ptr - incr;

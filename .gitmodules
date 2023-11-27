@@ -4,3 +4,6 @@
 [submodule "src/vendor/freertos"]
 	path = src/vendor/freertos
 	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
+[submodule ".format-configuration"]
+	path = .format-configuration
+	url = git@github.com:LumenRadio/format-configuration.git

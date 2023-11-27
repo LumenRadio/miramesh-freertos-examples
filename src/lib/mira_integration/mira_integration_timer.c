@@ -9,12 +9,9 @@ static volatile miracore_timer_time_t current_tick_time;
 static volatile miracore_timer_time_t previous_tick_time;
 
 /* default systick handler in FreeRTOS */
-void xPortSysTickHandler(
-    void);
+void xPortSysTickHandler(void);
 
-static void tick_callback(
-    miracore_timer_time_t now,
-    void *storage)
+static void tick_callback(miracore_timer_time_t now, void* storage)
 {
     current_tick_time = now;
     __DSB();
@@ -23,11 +20,10 @@ static void tick_callback(
     __SEV();
 }
 
-void SysTick_Handler(
-    void)
+void SysTick_Handler(void)
 {
     miracore_timer_time_t cyclesPerTick =
-        miramesh_timer_time_add_us(0, 1000000 / configTICK_RATE_HZ);
+      miramesh_timer_time_add_us(0, 1000000 / configTICK_RATE_HZ);
     int32_t diff;
 #if (configUSE_TICKLESS_IDLE == 1)
     diff = (current_tick_time - previous_tick_time) / cyclesPerTick;
@@ -39,7 +35,7 @@ void SysTick_Handler(
          *
          * Increment by (diff - 1) as xPortSysTickHandler() call at the end
          * would increment tick by 1 */
-        vTaskStepTick ((TickType_t) diff - 1);
+        vTaskStepTick((TickType_t)diff - 1);
     }
 #else
     /* If not tickless, we need to catch up to keep track of tick count */
@@ -47,10 +43,9 @@ void SysTick_Handler(
 #endif
     previous_tick_time += diff * cyclesPerTick;
 
-    miramesh_timer_schedule(
-        previous_tick_time + cyclesPerTick, /* Schedule for next tick */
-        tick_callback,
-        NULL);
+    miramesh_timer_schedule(previous_tick_time + cyclesPerTick, /* Schedule for next tick */
+                            tick_callback,
+                            NULL);
 
     xPortSysTickHandler();
 }
@@ -62,8 +57,7 @@ void SysTick_Handler(
  * This will allow the use of an RTC that is shared with
  * Mira
  */
-void vPortSetupTimerInterrupt(
-    void)
+void vPortSetupTimerInterrupt(void)
 {
     /* Turn off SysTick */
     SysTick->CTRL = 0;
@@ -87,19 +81,17 @@ void vPortSetupTimerInterrupt(
  *
  * To be called with interrupts disabled
  */
-static void wait_for_event(
-    void)
+static void wait_for_event(void)
 {
     /* ERRATA 87 fix */
-    if ((SCB->CPACR & ((1UL << 20) | (1UL << 22)))
-        == ((1UL << 20) | (1UL << 22))) {
-        asm (
-            "vmrs r0, fpscr      \n"
+    if ((SCB->CPACR & ((1UL << 20) | (1UL << 22))) == ((1UL << 20) | (1UL << 22))) {
+        asm("vmrs r0, fpscr      \n"
             "bic  r0, r0, 0x9f   \n"
             "vmsr fpscr, r0      \n"
             "vmrs r0, fpscr      \n"
-            : : : "r0"
-        );
+            :
+            :
+            : "r0");
         NVIC_ClearPendingIRQ(FPU_IRQn);
     }
 
@@ -123,22 +115,19 @@ static void wait_for_event(
 #endif
 }
 
-void vPortSuppressTicksAndSleep(
-    TickType_t xExpectedIdleTime)
+void vPortSuppressTicksAndSleep(TickType_t xExpectedIdleTime)
 {
     const miracore_timer_time_t cyclesPerTick =
-        miramesh_timer_time_add_us(0, 1000000 / configTICK_RATE_HZ);
+      miramesh_timer_time_add_us(0, 1000000 / configTICK_RATE_HZ);
 
     /* Make sure the SysTick reload value does not overflow the counter. */
-    if (xExpectedIdleTime >= ((1 << 30) / cyclesPerTick) ) {
+    if (xExpectedIdleTime >= ((1 << 30) / cyclesPerTick)) {
         xExpectedIdleTime = ((1 << 30) / cyclesPerTick) - 1;
     }
 
     miracore_timer_time_t enterTime = previous_tick_time;
 
-    miramesh_timer_schedule(enterTime + xExpectedIdleTime * cyclesPerTick,
-        tick_callback,
-        NULL);
+    miramesh_timer_schedule(enterTime + xExpectedIdleTime * cyclesPerTick, tick_callback, NULL);
 
     /* Block all the interrupts globally */
 #if SOFTDEVICE_PRESENT
@@ -150,9 +139,7 @@ void vPortSuppressTicksAndSleep(
 #endif
 
     if (enterTime != previous_tick_time) {
-        miramesh_timer_schedule(previous_tick_time + cyclesPerTick,
-            tick_callback,
-            NULL);
+        miramesh_timer_schedule(previous_tick_time + cyclesPerTick, tick_callback, NULL);
     } else if (eTaskConfirmSleepModeStatus() != eAbortSleep) {
         /* Sleep until something happens.  configPRE_SLEEP_PROCESSING() can
          * set its parameter to 0 to indicate that its implementation contains
@@ -183,10 +170,8 @@ void vPortSuppressTicksAndSleep(
             }
 #endif
             if (diff < xExpectedIdleTime) {
-                miramesh_timer_schedule(previous_tick_time + cyclesPerTick
-                    * (diff + 1),
-                    tick_callback,
-                    NULL);
+                miramesh_timer_schedule(
+                  previous_tick_time + cyclesPerTick * (diff + 1), tick_callback, NULL);
             }
         }
     }
